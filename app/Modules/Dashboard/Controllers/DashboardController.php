@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Modules\Dashboard\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Models\Company;
+use App\Models\ServiceRecord;
+use App\Modules\Dashboard\Services\MasterExportService;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        $companiesCount = Company::count();
+        
+        // Total de todos los registros
+        $totalServices = ServiceRecord::count();
+
+        // Total de correos específicamente
+        $totalEmails = ServiceRecord::where('type', 'email')->count();
+
+        // Correos activos vs suspendidos (agnóstico al motor de base de datos usando sintaxis JSON nativa de Laravel)
+        $activeEmails = ServiceRecord::where('type', 'email')
+            ->where('data->status', 'Activo')
+            ->count();
+            
+        $suspendedEmails = ServiceRecord::where('type', 'email')
+            ->whereIn('data->status', ['Suspendido', 'Bloqueada', 'Inactivo'])
+            ->count();
+
+        // Últimas 5 empresas agregadas
+        $recentCompanies = Company::orderBy('created_at', 'desc')->take(5)->get();
+
+        return view('dashboard', compact(
+            'companiesCount', 
+            'totalServices', 
+            'totalEmails', 
+            'activeEmails', 
+            'suspendedEmails', 
+            'recentCompanies'
+        ));
+    }
+
+    public function exportMaster(MasterExportService $exportService)
+    {
+        return $exportService->exportCSV();
+    }
+}
