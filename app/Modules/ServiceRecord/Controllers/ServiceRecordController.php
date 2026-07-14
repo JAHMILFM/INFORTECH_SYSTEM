@@ -105,8 +105,8 @@ class ServiceRecordController extends Controller
             ->with('success', 'Registro eliminado.');
     }
 
-    // Exporta a CSV
-    public function export(Company $company, string $type, CsvExportService $exportService)
+    // Exporta a Excel
+    public function export(Company $company, string $type, \App\Services\ExcelExportService $exportService)
     {
         $types = ServiceRecord::typeConfig();
         abort_if(!isset($types[$type]), 404);

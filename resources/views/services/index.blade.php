@@ -20,8 +20,8 @@
             <i class="fa fa-arrow-left me-1"></i> Volver
         </a>
         @if($records->count() > 0)
-        <a href="{{ route('companies.services.export', [$company->id, $type]) }}" class="btn btn-dark btn-sm">
-            <i class="fa fa-download me-1"></i> Exportar CSV
+        <a href="{{ route('companies.services.export', [$company->id, $type]) }}" class="btn btn-success btn-sm text-white">
+            <i class="fa fa-file-excel-o me-1"></i> Exportar Excel
         </a>
         @endif
         @if($type === 'email')
