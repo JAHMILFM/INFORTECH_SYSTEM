@@ -36,12 +36,19 @@ class CsvExportService
                 $row = [];
                 $data = $record->data;
                 // Prevención Data Leak: Enmascarar contraseña exportada
-                if (isset($data['password'])) {
-                    $data['password'] = '*** ENMASCARADO ***';
+                foreach (array_keys($data) as $k) {
+                    if (preg_match('/pass(word)?|key/i', $k)) {
+                        $data[$k] = '*** ENMASCARADO ***';
+                    }
                 }
 
                 foreach (array_keys($columns) as $key) {
-                    $row[] = $data[$key] ?? '';
+                    $val = $data[$key] ?? '';
+                    // Prevención Inyección CSV: Prevenir que Excel interprete el texto como fórmula
+                    if (preg_match('/^[=\-+@]/', $val)) {
+                        $val = "'" . $val;
+                    }
+                    $row[] = $val;
                 }
                 fputcsv($file, $row);
             }

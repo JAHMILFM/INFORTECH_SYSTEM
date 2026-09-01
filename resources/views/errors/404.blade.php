@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -45,7 +45,7 @@
             line-height: 1;
         }
         .btn-home {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #e56b0c 0%, #1f3a6f 100%);
             border: none;
             color: #fff;
             padding: 10px 25px;
@@ -60,7 +60,7 @@
         }
         .btn-home:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+            box-shadow: 0 10px 20px rgba(229, 107, 12, 0.3);
             color: #fff;
         }
     </style>

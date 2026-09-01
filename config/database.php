@@ -114,6 +114,10 @@ return [
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
             'pool_size' => env('DB_POOL_SIZE', 100),
             'application_intent' => env('DB_APP_INTENT', 'ReadWrite'),
+            'options' => extension_loaded('pdo_sqlsrv') ? [
+                // Driver de Microsoft no soporta ATTR_TIMEOUT, requiere SQLSRV_ATTR_QUERY_TIMEOUT
+                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => (int) env('DB_TIMEOUT', 30),
+            ] : [],
         ],
 
     ],

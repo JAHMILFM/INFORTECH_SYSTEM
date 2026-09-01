@@ -30,22 +30,25 @@ class MasterExportService
             // Header row
             fputcsv($file, ['ID Servicio', 'Empresa', 'Dominio', 'Tipo Servicio', 'Datos (JSON)', 'Fecha Creacion'], ';');
 
-            foreach (ServiceRecord::with('company')->cursor() as $service) {
-                // Prevención Data Leak: No exportar hashes de contraseñas
-                $exportData = $service->data;
-                if (isset($exportData['password'])) {
-                    $exportData['password'] = '*** ENMASCARADO ***';
-                }
+            // [DBA OPTIMIZED] Usamos chunk() en lugar de cursor() porque cursor() no soporta eager loading (N+1 oculto)
+            ServiceRecord::with('company')->chunk(500, function ($services) use ($file) {
+                foreach ($services as $service) {
+                    // Prevención Data Leak: No exportar hashes de contraseñas
+                    $exportData = $service->data;
+                    if (isset($exportData['password'])) {
+                        $exportData['password'] = '*** ENMASCARADO ***';
+                    }
 
-                fputcsv($file, [
-                    $service->id,
-                    $service->company->name ?? 'N/A',
-                    $service->company->domain ?? 'N/A',
-                    strtoupper($service->type),
-                    json_encode($exportData, JSON_UNESCAPED_UNICODE),
-                    $service->created_at->format('Y-m-d H:i:s')
-                ], ';');
-            }
+                    fputcsv($file, [
+                        $service->id,
+                        $service->company->name ?? 'N/A',
+                        $service->company->domain ?? 'N/A',
+                        strtoupper($service->type),
+                        json_encode($exportData, JSON_UNESCAPED_UNICODE),
+                        $service->created_at->format('Y-m-d H:i:s')
+                    ], ';');
+                }
+            });
             fclose($file);
         };
 

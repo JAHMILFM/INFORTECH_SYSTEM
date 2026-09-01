@@ -18,8 +18,11 @@ class SearchService
         $serviceResults = collect();
 
         if ($query !== '') {
-            $companyResults = Company::where('name', 'like', "%{$query}%")
-                ->orWhere('domain', 'like', "%{$query}%")
+            // [DBA SECURE] Escapar caracteres comodín para evitar ataques de Denegación de Servicio (DoS) en el motor SQL
+            $escapedQuery = addcslashes($query, '%_');
+
+            $companyResults = Company::where('name', 'like', "%{$escapedQuery}%")
+                ->orWhere('domain', 'like', "%{$escapedQuery}%")
                 ->take(30) // Límite para escalabilidad
                 ->get();
 
@@ -27,7 +30,7 @@ class SearchService
             // Para máxima compatibilidad con SQLite y evitar problemas de case-sensitivity,
             // buscamos en la columna 'data' cruda como texto.
             $serviceResults = ServiceRecord::with('company')
-                ->where('data', 'like', "%{$query}%")
+                ->where('data', 'like', "%{$escapedQuery}%")
                 ->take(30)
                 ->get();
         }

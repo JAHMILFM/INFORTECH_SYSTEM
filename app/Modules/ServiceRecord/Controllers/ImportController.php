@@ -74,52 +74,57 @@ class ImportController extends Controller
                 $emailColIndex = array_key_first($colCounts); // restore since increment modifies it
             }
 
-            foreach ($worksheet->getRowIterator() as $row) {
-                $cellIterator = $row->getCellIterator();
-                $cellIterator->setIterateOnlyExistingCells(FALSE);
-                $rowData = [];
-                foreach ($cellIterator as $idx => $cell) {
-                    $rowData[$idx] = $cell->getValue();
-                }
+            // Pre-cargar todos los correos existentes para evitar N+1 consultas (Index Seek masivo en RAM)
+            $existingRecords = ServiceRecord::where('company_id', $company->id)
+                ->where('type', 'email')
+                ->get()
+                ->keyBy(function ($item) {
+                    return strtolower($item->data['email'] ?? '');
+                });
 
-                $email = isset($rowData[$emailColIndex]) ? trim((string)$rowData[$emailColIndex]) : null;
-                $password = isset($rowData[$passwordColIndex]) ? trim((string)$rowData[$passwordColIndex]) : null;
+            \Illuminate\Support\Facades\DB::transaction(function () use ($worksheet, $company, $emailColIndex, $passwordColIndex, &$emailsFound, &$updated, $existingRecords) {
+                foreach ($worksheet->getRowIterator() as $row) {
+                    $cellIterator = $row->getCellIterator();
+                    $cellIterator->setIterateOnlyExistingCells(FALSE);
+                    $rowData = [];
+                    foreach ($cellIterator as $idx => $cell) {
+                        $rowData[$idx] = $cell->getValue();
+                    }
 
-                if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    // Save or update
-                    $record = ServiceRecord::where('company_id', $company->id)
-                        ->where('type', 'email')
-                        ->whereJsonContains('data->email', $email)
-                        ->first();
+                    $email = isset($rowData[$emailColIndex]) ? trim((string)$rowData[$emailColIndex]) : null;
+                    $password = isset($rowData[$passwordColIndex]) ? trim((string)$rowData[$passwordColIndex]) : null;
 
-                    $data = [
-                        'email' => $email,
-                        'status' => 'Activo'
-                    ];
+                    if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $emailKey = strtolower($email);
+                        $record = $existingRecords->get($emailKey);
 
-                    if (!empty($password) && !filter_var($password, FILTER_VALIDATE_URL) && !str_contains($password, 'mail.')) {
-                        $data['password'] = Crypt::encryptString($password);
-                    } elseif ($record) {
-                        // Keep old password if new one is invalid
-                        $oldData = $record->data;
-                        if (isset($oldData['password'])) {
-                            $data['password'] = $oldData['password'];
+                        $newData = $record ? $record->data : [];
+                        $newData['email'] = $email;
+                        $newData['status'] = 'Activo';
+
+                        if (!empty($password) && !filter_var($password, FILTER_VALIDATE_URL) && !str_contains($password, 'mail.')) {
+                            $newData['password'] = Crypt::encryptString($password);
+                        } elseif ($record) {
+                            $oldData = $record->data;
+                            if (isset($oldData['password'])) {
+                                $newData['password'] = $oldData['password'];
+                            }
+                        }
+
+                        if ($record) {
+                            $record->update(['data' => $newData]);
+                            $updated++;
+                        } else {
+                            ServiceRecord::create([
+                                'company_id' => $company->id,
+                                'type' => 'email',
+                                'data' => $newData,
+                            ]);
+                            $emailsFound++;
                         }
                     }
-
-                    if ($record) {
-                        $record->update(['data' => $data]);
-                        $updated++;
-                    } else {
-                        ServiceRecord::create([
-                            'company_id' => $company->id,
-                            'type' => 'email',
-                            'data' => $data,
-                        ]);
-                        $emailsFound++;
-                    }
                 }
-            }
+            });
 
             return redirect()->route('companies.show', $company->id)
                 ->with('success', "Importación completada: {$emailsFound} nuevos correos importados, {$updated} actualizados.");

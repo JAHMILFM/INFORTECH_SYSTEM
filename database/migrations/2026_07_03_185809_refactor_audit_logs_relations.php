@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('audit_logs', function (Blueprint $table) {
             $table->dropIndex('audit_logs_model_index');
             $table->dropColumn(['model_type', 'model_id']);
-            $table->foreignId('company_id')->nullable()->after('action')->constrained('companies')->nullOnDelete();
-            $table->foreignId('service_record_id')->nullable()->after('company_id')->constrained('service_records')->nullOnDelete();
+            $table->foreignId('company_id')->nullable()->after('action')->constrained('companies');
+            $table->foreignId('service_record_id')->nullable()->after('company_id')->constrained('service_records');
         });
     }
 

@@ -72,6 +72,7 @@
                                                 data-tax_id="{{ $company->tax_id }}"
                                                 data-domain="{{ $company->domain }}"
                                                 data-email="{{ $company->contact_email }}"
+                                                data-allowed_services="{{ json_encode($company->allowed_services) }}"
                                                 title="Editar">
                                             <i class="fa fa-pencil"></i>
                                         </button>
@@ -116,7 +117,7 @@
                 <h5 class="modal-title text-white">Registrar Empresa</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('companies.store') }}" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fa fa-spinner fa-spin me-1\'></i> Guardando...';">
+            <form action="{{ route('companies.store') }}" method="POST" onsubmit="if(!this.checkValidity()){ alert('Por favor complete todos los campos obligatorios (Nombre y RUC).'); return false; } this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fa fa-spinner fa-spin me-1\'></i> Guardando...';">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -131,6 +132,21 @@
                         <label class="form-label fw-bold">Dominio Principal</label>
                         <input type="text" name="domain" class="form-control" placeholder="Ej. infortech.com">
                         <small class="text-muted">Se usará para autogenerar enlaces como mail.dominio.com</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Servicios Disponibles</label>
+                        <div class="row">
+                            @foreach(\App\Models\ServiceRecord::typeConfig() as $type => $config)
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="allowed_services[]" value="{{ $type }}" id="svc_modal_create_{{ $type }}" checked>
+                                    <label class="form-check-label" for="svc_modal_create_{{ $type }}" style="font-size: 0.9em;">
+                                        <i class="fa {{ $config['icon'] }} me-1" style="width: 15px; text-align: center;"></i> {{ $config['label'] }}
+                                    </label>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -150,7 +166,7 @@
                 <h5 class="modal-title text-white">Editar Empresa</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editCompanyForm" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fa fa-spinner fa-spin me-1\'></i> Actualizando...';">
+            <form id="editCompanyForm" method="POST" onsubmit="if(!this.checkValidity()){ alert('Por favor complete todos los campos obligatorios (Nombre y RUC).'); return false; } this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fa fa-spinner fa-spin me-1\'></i> Actualizando...';">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -169,6 +185,21 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Email de Contacto</label>
                         <input type="email" name="contact_email" id="edit_company_email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Servicios Disponibles</label>
+                        <div class="row" id="edit_company_services_container">
+                            @foreach(\App\Models\ServiceRecord::typeConfig() as $type => $config)
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input edit-service-checkbox" type="checkbox" name="allowed_services[]" value="{{ $type }}" id="svc_modal_edit_{{ $type }}">
+                                    <label class="form-check-label" for="svc_modal_edit_{{ $type }}" style="font-size: 0.9em;">
+                                        <i class="fa {{ $config['icon'] }} me-1" style="width: 15px; text-align: center;"></i> {{ $config['label'] }}
+                                    </label>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                     </div>
                     <div class="alert alert-warning">
                         <i class="fa fa-warning me-2"></i> Si cambias el dominio, los enlaces automáticos en el panel cambiarán.
@@ -193,7 +224,7 @@
             </div>
             <div class="modal-body">
                 <p>Estás a punto de eliminar la empresa <strong id="hardDeleteCompanyName" class="text-danger"></strong>.</p>
-                <p class="text-muted small">Esto destruirá permanentemente todos los servicios, correos, accesos remotos y contraseñas asociados. Esta acción NO se puede deshacer.</p>
+                <p class="text-muted small">Esto deshabilitará y ocultará la empresa junto con todos sus servicios, correos, accesos remotos y contraseñas (Soft Delete por seguridad).</p>
                 <div class="mt-4">
                     <label class="form-label fw-bold">Escribe <span class="text-danger">ELIMINAR</span> para confirmar:</label>
                     <input type="text" id="hardDeleteConfirmInput" class="form-control text-center text-uppercase" placeholder="ELIMINAR" autocomplete="off">
@@ -201,7 +232,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="hardDeleteConfirmBtn" disabled onclick="executeHardDelete()">Confirmar Destrucción</button>
+                <button type="button" class="btn btn-danger" id="hardDeleteConfirmBtn" disabled onclick="executeHardDelete()">Confirmar Eliminación</button>
             </div>
         </div>
     </div>
@@ -221,6 +252,22 @@
                 document.getElementById('edit_company_tax_id').value = btn.getAttribute('data-tax_id');
                 document.getElementById('edit_company_domain').value = btn.getAttribute('data-domain');
                 document.getElementById('edit_company_email').value = btn.getAttribute('data-email');
+                
+                const allowedServicesStr = btn.getAttribute('data-allowed_services');
+                let allowedServices = null;
+                if (allowedServicesStr && allowedServicesStr !== "null") {
+                    try {
+                        allowedServices = JSON.parse(allowedServicesStr);
+                    } catch(e) {}
+                }
+                
+                document.querySelectorAll('.edit-service-checkbox').forEach(cb => {
+                    if (allowedServices === null) {
+                        cb.checked = true;
+                    } else {
+                        cb.checked = allowedServices.includes(cb.value);
+                    }
+                });
             });
         }
         
@@ -245,7 +292,7 @@
     function executeHardDelete() {
         if (currentDeleteId) {
             const btn = document.getElementById('hardDeleteConfirmBtn');
-            btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Destruyendo...';
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Eliminando...';
             btn.disabled = true;
             document.getElementById('delete-company-form-' + currentDeleteId).submit();
         }

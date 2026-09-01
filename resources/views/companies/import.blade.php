@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <div class="row page-titles mx-0">
@@ -42,7 +42,7 @@
                       onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\'fa fa-spinner fa-spin me-2\'></i> Importando y Procesando...';">
                     @csrf
                     
-                    <div class="mb-4 mt-4 text-center p-5 border rounded" style="background-color: #f8f9fa; border: 2px dashed #4facfe !important;">
+                    <div class="mb-4 mt-4 text-center p-5 border rounded" style="background-color: #f8f9fa; border: 2px dashed #e56b0c !important;">
                         <i class="fa fa-cloud-upload fa-4x text-primary mb-3"></i>
                         <h5 class="fw-bold">Arrastra tu archivo aquí o haz clic para seleccionar</h5>
                         <p class="text-muted">Tamaño máximo: 10MB</p>
@@ -50,7 +50,7 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg shadow-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border:none;">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm" style="background: linear-gradient(135deg, #e56b0c 0%, #1f3a6f 100%); border:none;">
                             <i class="fa fa-upload me-2"></i> Iniciar Importación
                         </button>
                     </div>

@@ -58,6 +58,9 @@
                                     @elseif($log->service_record_id)
                                         <span class="badge badge-info">Servicio</span>
                                         <small>(ID: {{ $log->service_record_id }})</small>
+                                    @elseif($log->target_user_id)
+                                        <span class="badge badge-dark">Usuario</span>
+                                        <small>(ID: {{ $log->target_user_id }})</small>
                                     @else
                                         <span class="badge badge-secondary">Desconocido</span>
                                     @endif

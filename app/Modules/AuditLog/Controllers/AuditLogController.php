@@ -10,7 +10,7 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AuditLog::with('user')->orderBy('created_at', 'desc');
+        $query = AuditLog::with(['user', 'targetUser'])->orderBy('created_at', 'desc');
 
         // Filtro BPM: Contexto por Empresa
         if ($request->has('company_id')) {

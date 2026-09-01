@@ -11,7 +11,9 @@ class CompanyService
      */
     public function createCompany(array $data): Company
     {
-        return Company::create($data);
+        $company = Company::create($data);
+        event(new \App\Events\CompanyCreated($company));
+        return $company;
     }
 
     /**

@@ -37,6 +37,8 @@ class CompanyController extends Controller
             'tax_id'        => 'required|string|max:50|unique:companies,tax_id',
             'domain'        => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
+            'allowed_services' => 'nullable|array',
+            'allowed_services.*' => 'string',
         ]);
 
         $this->companyService->createCompany($validated);
@@ -58,6 +60,8 @@ class CompanyController extends Controller
             'tax_id'        => 'required|string|max:50|unique:companies,tax_id,' . $company->id,
             'domain'        => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
+            'allowed_services' => 'nullable|array',
+            'allowed_services.*' => 'string',
         ]);
 
         $this->companyService->updateCompany($company, $validated);
@@ -76,7 +80,9 @@ class CompanyController extends Controller
 
     public function updateZimbraConfig(Request $request, Company $company)
     {
-        $this->requireWriteAccess();
+        if (!auth()->user() || auth()->user()->role !== 'SuperAdmin') {
+            abort(403, 'Acceso Denegado: Solo el Administrador del Sistema (SuperAdmin) puede configurar credenciales globales.');
+        }
 
         $validated = $request->validate([
             'zimbra_host'     => 'nullable|string|max:255',
@@ -106,7 +112,7 @@ class CompanyController extends Controller
         }
 
         if (!empty($validated['zimbra_password'])) {
-            $data['password'] = $validated['zimbra_password'];
+            $data['password'] = \Illuminate\Support\Facades\Crypt::encryptString($validated['zimbra_password']);
         }
 
         if (!$adminRecord) {
@@ -127,7 +133,9 @@ class CompanyController extends Controller
 
     public function revealZimbraPassword(Request $request, Company $company)
     {
-        $this->requireWriteAccess();
+        if (!auth()->user() || auth()->user()->role !== 'SuperAdmin') {
+            abort(403, 'Acceso Denegado: Solo el Administrador del Sistema (SuperAdmin) puede revelar credenciales globales.');
+        }
 
         $request->validate([
             'password' => 'required|string',
@@ -149,12 +157,33 @@ class CompanyController extends Controller
             return response()->json(['error' => 'Contraseña no configurada'], 404);
         }
 
-        return response()->json(['password' => $adminRecord->data['password']]);
+        $password = $adminRecord->data['password'];
+        try {
+            $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            // Si falla, asumimos que estaba en texto plano temporalmente
+        }
+
+        // Registrar en logs de auditoría la visualización de la contraseña
+        \App\Models\AuditLog::create([
+            'user_id'    => auth()->id(),
+            'action'     => 'REVEAL_ADMIN_PASSWORD',
+            'company_id' => $company->id,
+            'service_record_id' => $adminRecord->id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'old_data'   => ['plataforma' => 'Zimbra', 'role' => 'Administrador'],
+            'new_data'   => ['status' => 'revealed'],
+        ]);
+
+        return response()->json(['password' => $password]);
     }
 
     public function updateNextcloudConfig(Request $request, Company $company)
     {
-        $this->requireWriteAccess();
+        if (!auth()->user() || auth()->user()->role !== 'SuperAdmin') {
+            abort(403, 'Acceso Denegado: Solo el Administrador del Sistema (SuperAdmin) puede configurar credenciales globales.');
+        }
 
         $validated = $request->validate([
             'nextcloud_url'      => 'nullable|url|max:255',
@@ -175,7 +204,7 @@ class CompanyController extends Controller
         $data['username'] = $validated['nextcloud_username'] ?? null;
 
         if (!empty($validated['nextcloud_password'])) {
-            $data['password'] = $validated['nextcloud_password'];
+            $data['password'] = \Illuminate\Support\Facades\Crypt::encryptString($validated['nextcloud_password']);
         }
 
         if (!$adminRecord) {
@@ -196,7 +225,9 @@ class CompanyController extends Controller
 
     public function revealNextcloudPassword(Request $request, Company $company)
     {
-        $this->requireWriteAccess();
+        if (!auth()->user() || auth()->user()->role !== 'SuperAdmin') {
+            abort(403, 'Acceso Denegado: Solo el Administrador del Sistema (SuperAdmin) puede revelar credenciales globales.');
+        }
 
         $request->validate([
             'password' => 'required|string',
@@ -216,7 +247,26 @@ class CompanyController extends Controller
             return response()->json(['error' => 'Contraseña no configurada'], 404);
         }
 
-        return response()->json(['password' => $adminRecord->data['password']]);
+        $password = $adminRecord->data['password'];
+        try {
+            $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            // Si falla, asumimos que estaba en texto plano temporalmente
+        }
+
+        // Registrar en logs de auditoría la visualización de la contraseña
+        \App\Models\AuditLog::create([
+            'user_id'    => auth()->id(),
+            'action'     => 'REVEAL_ADMIN_PASSWORD',
+            'company_id' => $company->id,
+            'service_record_id' => $adminRecord->id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'old_data'   => ['plataforma' => 'Nextcloud', 'role' => 'Administrador'],
+            'new_data'   => ['status' => 'revealed'],
+        ]);
+
+        return response()->json(['password' => $password]);
     }
 }
 

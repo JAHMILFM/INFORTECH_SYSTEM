@@ -34,7 +34,7 @@ class ServiceRecordObserver
             'user_id'    => Auth::id(),
             'action'     => $action,
             'company_id' => $serviceRecord->company_id,
-            'service_record_id' => $serviceRecord->id,
+            'service_record_id' => $action === 'DELETED' ? null : $serviceRecord->id,
             'old_data'   => $old,
             'new_data'   => $new,
             'ip_address' => request()->ip(),

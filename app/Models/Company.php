@@ -4,21 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Company extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     
-    protected $fillable = ['name', 'tax_id', 'domain', 'contact_email', 'is_active'];
+    protected $fillable = ['name', 'tax_id', 'domain', 'contact_email', 'is_active', 'status', 'onboarding_stage', 'account_manager_id', 'allowed_services'];
+
 
     public function serviceRecords()
     {
         return $this->hasMany(ServiceRecord::class);
     }
 
+    protected $casts = [
+        'allowed_services' => 'array',
+    ];
+
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function accountManager()
+    {
+        return $this->belongsTo(User::class, 'account_manager_id');
     }
 
     protected static function boot()
@@ -26,11 +37,8 @@ class Company extends Model
         parent::boot();
 
         static::deleting(function ($company) {
-            // Desvincular logs de auditoría para evitar restricción de clave foránea
-            $company->auditLogs()->update(['company_id' => null, 'service_record_id' => null]);
-            
-            // Eliminar registros de servicio (disparando sus propios eventos de borrado si los tienen)
-            $company->serviceRecords()->delete();
+            // Eliminar registros de servicio individualmente para disparar los eventos de auditoría y aplicar cascade soft-delete
+            $company->serviceRecords->each->delete();
         });
     }
 }

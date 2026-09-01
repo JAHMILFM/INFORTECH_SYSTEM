@@ -24,7 +24,7 @@ class AdminUserSeeder extends Seeder
         User::create([
             'name' => 'Administrador Infortech',
             'email' => 'admin@infortech.com',
-            'password' => Hash::make('t$4818043'), // Clave original del usuario
+            'password' => Hash::make(env('ADMIN_DEFAULT_PASSWORD', 'secret123')), // Cambiar en producción o mediante variables de entorno
             'role' => 'SuperAdmin'
         ]);
     }

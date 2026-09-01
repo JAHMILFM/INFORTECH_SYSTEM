@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/storage/app/backups
+/storage/app/developer_scratch
+composer.phar
+*.bak

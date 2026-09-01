@@ -59,7 +59,7 @@ class ServiceRecordController extends Controller
     public function update(Request $request, Company $company, string $type, ServiceRecord $record)
     {
         $this->requireWriteAccess();
-        abort_if($record->company_id !== $company->id, 403);
+        abort_if((int) $record->company_id !== (int) $company->id, 403);
         $types  = ServiceRecord::typeConfig();
         abort_if(!isset($types[$type]), 404);
 
@@ -82,7 +82,7 @@ class ServiceRecordController extends Controller
     public function toggleStatus(Request $request, Company $company, string $type, ServiceRecord $record)
     {
         $this->requireWriteAccess();
-        abort_if($record->company_id !== $company->id, 403);
+        abort_if((int) $record->company_id !== (int) $company->id, 403);
         
         $success = $this->serviceRecordService->toggleStatus($record, $request->input('status'));
         
@@ -92,11 +92,42 @@ class ServiceRecordController extends Controller
         return response()->json(['success' => false], 400);
     }
 
+    public function revealPassword(Request $request, Company $company, string $type, ServiceRecord $record)
+    {
+        $this->requireWriteAccess();
+        abort_if((int) $record->company_id !== (int) $company->id, 403);
+
+        $request->validate([
+            'password' => 'required|string',
+            'field'    => 'nullable|string',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
+            return response()->json(['error' => 'Contraseña incorrecta'], 403);
+        }
+
+        $data = $record->data;
+        $field = $request->input('field', 'password');
+
+        if (empty($data[$field])) {
+            return response()->json(['error' => 'Contraseña no configurada'], 404);
+        }
+
+        $password = $data[$field];
+        try {
+            $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            // Texto plano heredado
+        }
+
+        return response()->json(['password' => $password]);
+    }
+
     // Elimina un registro
     public function destroy(Company $company, string $type, ServiceRecord $record)
     {
         $this->requireWriteAccess();
-        abort_if($record->company_id !== $company->id, 403);
+        abort_if((int) $record->company_id !== (int) $company->id, 403);
         
         $this->serviceRecordService->deleteRecord($record);
 
@@ -105,8 +136,8 @@ class ServiceRecordController extends Controller
             ->with('success', 'Registro eliminado.');
     }
 
-    // Exporta a Excel
-    public function export(Company $company, string $type, \App\Services\ExcelExportService $exportService)
+    // Exporta a CSV
+    public function export(Company $company, string $type, CsvExportService $exportService)
     {
         $types = ServiceRecord::typeConfig();
         abort_if(!isset($types[$type]), 404);
@@ -118,5 +149,90 @@ class ServiceRecordController extends Controller
         $columns = $types[$type]['columns'];
 
         return $exportService->export($company, $type, $query, $columns);
+    }
+
+    // Guarda o actualiza credenciales de administrador de un servicio específico
+    public function updateAdminConfig(Request $request, Company $company, string $type)
+    {
+        if (!auth()->user() || auth()->user()->role !== 'SuperAdmin') {
+            abort(403, 'Acceso Denegado: Solo el Administrador del Sistema (SuperAdmin) puede configurar credenciales de servicio.');
+        }
+        
+        $validated = $request->validate([
+            'admin_url'      => 'nullable|url|max:255',
+            'admin_username' => 'nullable|string|max:255',
+            'admin_password' => 'nullable|string|max:255',
+            'admin_notes'    => 'nullable|string',
+        ]);
+
+        $adminRecord = \App\Models\ServiceRecord::where('company_id', $company->id)
+            ->where('type', 'admin_' . $type)
+            ->first();
+
+        $data = $adminRecord ? $adminRecord->data : [];
+        $data['url'] = $validated['admin_url'] ?? null;
+        $data['username'] = $validated['admin_username'] ?? null;
+        $data['notes'] = $validated['admin_notes'] ?? null;
+
+        if (!empty($validated['admin_password'])) {
+            $data['password'] = \Illuminate\Support\Facades\Crypt::encryptString($validated['admin_password']);
+        }
+
+        if (!$adminRecord) {
+            \App\Models\ServiceRecord::create([
+                'company_id' => $company->id,
+                'type' => 'admin_' . $type,
+                'data' => $data,
+            ]);
+        } else {
+            $adminRecord->update(['data' => $data]);
+        }
+
+        return redirect()->back()->with('success', 'Credenciales de administrador actualizadas correctamente.');
+    }
+
+    // Revela la contraseña del administrador del servicio específico
+    public function revealAdminPassword(Request $request, Company $company, string $type)
+    {
+        if (!auth()->user() || auth()->user()->role !== 'SuperAdmin') {
+            abort(403, 'Acceso Denegado: Solo el Administrador del Sistema (SuperAdmin) puede revelar credenciales.');
+        }
+
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
+            return response()->json(['error' => 'Contraseña incorrecta'], 403);
+        }
+
+        $adminRecord = \App\Models\ServiceRecord::where('company_id', $company->id)
+            ->where('type', 'admin_' . $type)
+            ->first();
+
+        if (!$adminRecord || empty($adminRecord->data['password'])) {
+            return response()->json(['error' => 'Contraseña no configurada'], 404);
+        }
+
+        $password = $adminRecord->data['password'];
+        try {
+            $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            // fallback if plain text
+        }
+
+        // Registrar en logs de auditoría la visualización de la contraseña
+        \App\Models\AuditLog::create([
+            'user_id'    => auth()->id(),
+            'action'     => 'REVEAL_ADMIN_PASSWORD',
+            'company_id' => $company->id,
+            'service_record_id' => $adminRecord->id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'old_data'   => ['plataforma' => 'Servicio ' . $type, 'role' => 'Administrador'],
+            'new_data'   => ['status' => 'revealed'],
+        ]);
+
+        return response()->json(['password' => $password]);
     }
 }

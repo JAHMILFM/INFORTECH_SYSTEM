@@ -1,4 +1,16 @@
+Options -Indexes
+ServerSignature Off
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # Bloquear acceso a archivos de configuración, logs y base de datos
+    RedirectMatch 403 (?i)\.(env|git|sql|json|lock|env\.example|log)$
+    
+    # Bloquear acceso directo a cualquier archivo PHP en la raíz del proyecto
+    RewriteCond %{THE_REQUEST} \/[a-zA-Z0-9_\-]+\.php [NC]
+    RewriteRule ^[a-zA-Z0-9_\-]+\.php$ - [F,L]
+
+    # Redirigir todas las demás peticiones a la carpeta pública
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
