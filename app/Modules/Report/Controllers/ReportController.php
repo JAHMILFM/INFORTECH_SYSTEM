@@ -322,6 +322,26 @@ class ReportController extends Controller
         return view('reports.print', compact('report'));
     }
 
+    public function downloadWord(Report $report)
+    {
+        $report->load([
+            'company',
+            'equipment',
+            'technician',
+            'reportType',
+            'software.catalogItem',
+            'signatures',
+        ]);
+
+        $content = view('reports.print', compact('report'))->render();
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/vnd.ms-word; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="Reporte-' . $report->code . '.doc"',
+            'Cache-Control'       => 'max-age=0',
+        ]);
+    }
+
     public function confirm(Report $report)
     {
         $this->requireWriteAccess();

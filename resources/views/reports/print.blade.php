@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte {{ $report->code }} — INOFERTEC</title>
+    <title>Reporte {{ $report->code }} — INFORTECH</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -35,6 +35,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn-print {
@@ -66,7 +68,10 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
+        .btn-back:hover { background: #f8fafc; border-color: #94a3b8; }
 
         /* HOJA A4 IMPRESA */
         .document-page {
@@ -310,9 +315,19 @@
         <a href="{{ route('reports.show', $report->id) }}" class="btn-back">
             <i class="bi bi-arrow-left"></i> Volver a la Ficha
         </a>
-        <button onclick="window.print()" class="btn-print">
-            <i class="bi bi-printer-fill"></i> Imprimir / Guardar como PDF
-        </button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            @if(!empty($report->decrypted_password))
+                <button type="button" onclick="togglePrintPassword()" class="btn-back" id="btnTogglePwd" title="Ocultar/Mostrar contraseña en la impresión">
+                    <i class="bi bi-eye"></i> Ocultar Clave
+                </button>
+            @endif
+            <a href="{{ route('reports.downloadWord', $report->id) }}" class="btn-back" title="Descargar documento editable">
+                <i class="bi bi-file-earmark-word-fill" style="color: #2563eb;"></i> Descargar Word (.doc)
+            </a>
+            <button onclick="window.print()" class="btn-print">
+                <i class="bi bi-printer-fill"></i> Imprimir / Guardar como PDF
+            </button>
+        </div>
     </div>
 
     <div class="document-page">
@@ -355,7 +370,7 @@
         <div class="section-box">
             <div class="section-header">
                 <span>Sección A — Datos del Cliente</span>
-                <span style="font-size: 10px; font-weight: normal;">Prestador: INOFERTEC S.A.C.</span>
+                <span style="font-size: 10px; font-weight: normal;">Prestador: INFORTECH S.A.C.</span>
             </div>
             <div class="section-body p-0">
                 <table class="data-table">
@@ -408,7 +423,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN C: USUARIO Y ACCESOS (CON REGLA DE SEGURIDAD) -->
+        <!-- SECCIÓN C: USUARIO Y ACCESOS (CONTRASEÑA VISIBLE) -->
         <div class="section-box">
             <div class="section-header">
                 <span>Sección C — Usuario y Accesos al Equipo</span>
@@ -424,9 +439,15 @@
                     <tr>
                         <th>Hostname del Equipo:</th>
                         <td>{{ $report->data['hostname'] ?? 'N/D' }}</td>
-                        <th>Credenciales Configuradas:</th>
+                        <th>Contraseña de Acceso:</th>
                         <td>
-                            <strong>{{ ($report->data['credentials_configured'] ?? false) ? 'Sí (Usuario y clave protegidos)' : 'No (Acceso libre)' }}</strong>
+                            @if(!empty($report->decrypted_password))
+                                <strong class="password-cell" data-real="{{ $report->decrypted_password }}" style="font-family: monospace; font-size: 12px; color: var(--primary); letter-spacing: 0.5px;">{{ $report->decrypted_password }}</strong>
+                            @elseif($report->data['credentials_configured'] ?? false)
+                                <em>Configurada (Protegida)</em>
+                            @else
+                                <span style="color: #64748b;">Sin contraseña / Acceso libre</span>
+                            @endif
                         </td>
                     </tr>
                 </table>
@@ -507,9 +528,9 @@
             <div class="section-body p-0">
                 <table class="signatures-table">
                     <tr>
-                        <!-- Columna 1: INOFERTEC -->
+                        <!-- Columna 1: INFORTECH -->
                         <td>
-                            <div class="sign-title">Entregado por (INOFERTEC S.A.C.)</div>
+                            <div class="sign-title">Entregado por (INFORTECH S.A.C.)</div>
                             <div class="sign-box">
                                 @if($report->deliverySignature && $report->deliverySignature->signature_data)
                                     <img src="{{ $report->deliverySignature->signature_data }}" alt="Firma Técnico">
@@ -542,9 +563,25 @@
         </div>
 
         <div class="footer-note">
-            Documento emitido conforme al estándar de calidad de servicio técnico INOFERTEC. Código de Formato: {{ $report->reportType->format_code ?? 'FOR-TI-001' }} — Versión: {{ $report->reportType->version ?? '02' }}.
+            Documento emitido conforme al estándar de calidad de servicio técnico INFORTECH. Código de Formato: {{ $report->reportType->format_code ?? 'FOR-TI-001' }} — Versión: {{ $report->reportType->version ?? '02' }}.
         </div>
     </div>
 
+    <script>
+        function togglePrintPassword() {
+            const el = document.querySelector('.password-cell');
+            const btn = document.getElementById('btnTogglePwd');
+            if (!el) return;
+            if (el.getAttribute('data-hidden') === 'true') {
+                el.textContent = el.getAttribute('data-real');
+                el.removeAttribute('data-hidden');
+                btn.innerHTML = '<i class="bi bi-eye"></i> Ocultar Clave';
+            } else {
+                el.setAttribute('data-hidden', 'true');
+                el.textContent = '••••••••';
+                btn.innerHTML = '<i class="bi bi-eye-slash"></i> Mostrar Clave';
+            }
+        }
+    </script>
 </body>
 </html>

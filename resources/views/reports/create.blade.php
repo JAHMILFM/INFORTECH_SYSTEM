@@ -51,7 +51,7 @@
                 <div class="step-num" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">A</div>
                 <h5 class="card-title mb-0" style="color: var(--text);">Datos de la Empresa Cliente</h5>
             </div>
-            <span class="fs-12 text-muted"><i class="bi bi-building me-1"></i> Prestador del servicio: INOFERTEC</span>
+            <span class="fs-12 text-muted"><i class="bi bi-building me-1"></i> Prestador del servicio: INFORTECH</span>
         </div>
         <div class="card-body p-4">
             <div class="row g-3">
@@ -364,7 +364,7 @@
         <div class="card-body p-4">
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold" style="color: var(--text);">Técnico Responsable (INOFERTEC)</label>
+                    <label class="form-label fw-semibold" style="color: var(--text);">Técnico Responsable (INFORTECH)</label>
                     <input type="text" name="technician_name" class="form-control" value="{{ old('technician_name', auth()->user()->name) }}" style="background: var(--surface); color: var(--text); border-color: var(--border);">
                     <small class="text-muted">Tomado automáticamente de tu sesión de usuario.</small>
                 </div>
@@ -384,12 +384,12 @@
 
             <!-- LIENZOS DE FIRMA DIGITAL -->
             <div class="row g-4 mt-2">
-                <!-- Columna 1: Firma Entrega (INOFERTEC) -->
+                <!-- Columna 1: Firma Entrega (INFORTECH) -->
                 <div class="col-md-6">
                     <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-bold fs-13" style="color: var(--primary);">
-                                <i class="bi bi-shield-check me-1"></i> ENTREGADO POR (INOFERTEC)
+                                <i class="bi bi-shield-check me-1"></i> ENTREGADO POR (INFORTECH)
                             </span>
                             <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fs-11" onclick="clearDeliveryCanvas()">
                                 <i class="bi bi-eraser me-1"></i> Limpiar

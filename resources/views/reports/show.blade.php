@@ -31,7 +31,11 @@
     <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex gap-2">
         <a href="{{ route('reports.print', $report->id) }}" target="_blank" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
             <i class="bi bi-printer-fill"></i>
-            <span>Imprimir / Exportar PDF</span>
+            <span>Imprimir / PDF</span>
+        </a>
+        <a href="{{ route('reports.downloadWord', $report->id) }}" class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-file-earmark-word-fill"></i>
+            <span>Descargar Word (.doc)</span>
         </a>
         @if($report->status === 'draft')
             <form action="{{ route('reports.confirm', $report->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmar este reporte como oficial?')">
@@ -177,14 +181,15 @@
                                     {{ ($report->data['credentials_configured'] ?? false) ? 'Sí (Protegidas con Clave)' : 'No (Acceso Libre)' }}
                                 </span>
                             </div>
-                            @if(!empty($report->data['encrypted_access_password']))
-                                <div>
-                                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="toggleSecretPassword()">
-                                        <i class="bi bi-key-fill me-1"></i> <span id="pwd_btn_label">Ver Contraseña (Cifrada)</span>
-                                    </button>
-                                    <span id="revealed_password" class="ms-2 fw-bold font-monospace text-warning fs-14" style="display: none;">
+                            @if(!empty($report->decrypted_password))
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted fs-12">Contraseña:</span>
+                                    <span class="badge px-3 py-2 font-monospace fs-14" style="background: rgba(229,107,12,0.15); color: var(--primary); border: 1px solid rgba(229,107,12,0.3);">
                                         {{ $report->decrypted_password }}
                                     </span>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText('{{ addslashes($report->decrypted_password) }}'); if(typeof toastr !== 'undefined'){ toastr.success('Contraseña copiada'); } else { alert('Contraseña copiada al portapapeles'); }" title="Copiar contraseña">
+                                        <i class="bi bi-clipboard me-1"></i> Copiar
+                                    </button>
                                 </div>
                             @endif
                         </div>
@@ -289,7 +294,7 @@
                     <div class="col-sm-6 text-center">
                         <div class="p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
                             <div class="fs-12 fw-bold text-uppercase mb-2" style="color: var(--primary);">
-                                Entregado por (INOFERTEC)
+                                Entregado por (INFORTECH)
                             </div>
                             <div class="signature-box bg-white rounded p-2 mb-2 d-flex align-items-center justify-content-center" style="height: 110px; border: 1px solid #cbd5e1;">
                                 @if($report->deliverySignature && $report->deliverySignature->signature_data)

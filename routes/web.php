@@ -107,6 +107,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::get('/reports/{report}/print', [ReportController::class, 'print'])->name('reports.print');
+    Route::get('/reports/{report}/download-word', [ReportController::class, 'downloadWord'])->name('reports.downloadWord');
     Route::post('/reports/{report}/confirm', [ReportController::class, 'confirm'])->name('reports.confirm');
     Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->middleware('role:SuperAdmin')->name('reports.destroy');
     Route::get('/reports/api/equipment/{company}', [ReportController::class, 'getEquipmentByCompany'])->name('reports.api.equipment');
