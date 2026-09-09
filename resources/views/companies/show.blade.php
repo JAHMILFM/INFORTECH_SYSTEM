@@ -21,6 +21,9 @@
         </div>
     </div>
     <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex align-items-center gap-2">
+        <a href="{{ route('reports.create', ['company_id' => $company->id]) }}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-file-earmark-plus me-1"></i> Reporte FOR-TI-001
+        </a>
         <a href="{{ route('companies.import.show', $company->id) }}" class="btn btn-success btn-sm">
             <i class="fa fa-file-excel-o me-1"></i> Importar Excel
         </a>
@@ -143,6 +146,92 @@
         </div>
     </div>
 </div>
+
+<!-- SECCIÓN: REPORTES TÉCNICOS Y FORMATEO FOR-TI-001 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
+            <div class="card-header d-flex justify-content-between align-items-center py-3 px-4" style="border-bottom: 1px solid var(--border);">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-text-fill fs-5" style="color: var(--primary);"></i>
+                    <h4 class="card-title mb-0" style="color: var(--text);">Reportes de Formateo y Mantenimiento Técnico</h4>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('reports.create', ['company_id' => $company->id]) }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i> Nuevo FOR-TI-001
+                    </a>
+                    <a href="{{ route('reports.index', ['company_id' => $company->id]) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-list-check me-1"></i> Ver Todos ({{ $company->reports->count() }})
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-3">
+                @if($company->reports->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="color: var(--text);">
+                            <thead style="background: rgba(255,255,255,0.02);">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Fecha</th>
+                                    <th>Equipo</th>
+                                    <th>Técnico</th>
+                                    <th>Estado</th>
+                                    <th class="text-end pe-3">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($company->reports->take(5) as $rep)
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td>
+                                        <a href="{{ route('reports.show', $rep->id) }}" class="fw-bold" style="color: var(--primary); text-decoration: none;">
+                                            {{ $rep->code }}
+                                        </a>
+                                    </td>
+                                    <td>{{ \Carbon\Carbon::parse($rep->service_date)->format('d/m/Y') }}</td>
+                                    <td>
+                                        @if($rep->equipment)
+                                            <span class="fw-semibold">{{ $rep->equipment->brand }} {{ $rep->equipment->model }}</span>
+                                            <small class="text-muted d-block font-monospace">S/N: {{ $rep->equipment->serial_number }}</small>
+                                        @else
+                                            <span class="text-muted">N/D</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $rep->technician_name }}</td>
+                                    <td>
+                                        @if($rep->status === 'confirmed')
+                                            <span class="badge bg-success">Confirmado</span>
+                                        @else
+                                            <span class="badge bg-warning">Borrador</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('reports.show', $rep->id) }}" class="btn btn-outline-secondary" title="Ver Detalle">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ route('reports.print', $rep->id) }}" target="_blank" class="btn btn-outline-primary" title="Imprimir / PDF">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-file-earmark-plus fs-2 d-block mb-2" style="opacity: 0.5;"></i>
+                        No hay reportes FOR-TI-001 generados aún para {{ $company->name }}.
+                        <div class="mt-2">
+                            <a href="{{ route('reports.create', ['company_id' => $company->id]) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-circle me-1"></i> Generar primer reporte
+                            </a>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
-
-

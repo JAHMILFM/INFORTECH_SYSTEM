@@ -50,6 +50,30 @@
             <i class="bi bi-buildings-fill nav-icon"></i> <span>Mis Clientes</span>
         </a>
 
+        <div class="nav-label mt-2">Servicios Técnicos</div>
+
+        <a class="nav-item-link collapse-toggle {{ Route::is('reports.*') || Route::is('equipment.*') || Route::is('software-catalog.*') ? 'active' : '' }}"
+           data-bs-toggle="collapse" href="#collapseReports"
+           aria-expanded="{{ Route::is('reports.*') || Route::is('equipment.*') || Route::is('software-catalog.*') ? 'true' : 'false' }}">
+            <i class="bi bi-file-earmark-text-fill nav-icon"></i> <span>Reportes Técnicos</span>
+        </a>
+        <div class="collapse {{ Route::is('reports.*') || Route::is('equipment.*') || Route::is('software-catalog.*') ? 'show' : '' }}" id="collapseReports">
+            <div class="sub-nav">
+                <a href="{{ route('reports.index') }}" class="nav-item-link {{ Route::is('reports.index') ? 'active' : '' }}">
+                    <i class="bi bi-journal-check nav-icon"></i> <span>Historial Reportes</span>
+                </a>
+                <a href="{{ route('reports.create') }}" class="nav-item-link {{ Route::is('reports.create') ? 'active' : '' }}">
+                    <i class="bi bi-plus-circle-fill nav-icon" style="color: var(--primary);"></i> <span>Nuevo FOR-TI-001</span>
+                </a>
+                <a href="{{ route('equipment.index') }}" class="nav-item-link {{ Route::is('equipment.*') ? 'active' : '' }}">
+                    <i class="bi bi-laptop-fill nav-icon"></i> <span>Equipos / Hoja de Vida</span>
+                </a>
+                <a href="{{ route('software-catalog.index') }}" class="nav-item-link {{ Route::is('software-catalog.*') ? 'active' : '' }}">
+                    <i class="bi bi-app-indicator nav-icon"></i> <span>Catálogo Programas</span>
+                </a>
+            </div>
+        </div>
+
         @if(auth()->user()->role === 'SuperAdmin')
         <div class="nav-label mt-2">Administración</div>
 

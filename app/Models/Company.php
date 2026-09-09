@@ -10,8 +10,31 @@ class Company extends Model
 {
     use HasFactory, SoftDeletes;
     
-    protected $fillable = ['name', 'tax_id', 'domain', 'contact_email', 'is_active', 'status', 'onboarding_stage', 'account_manager_id', 'allowed_services'];
+    protected $fillable = [
+        'name',
+        'tax_id',
+        'domain',
+        'branch',
+        'area',
+        'contact_name',
+        'contact_phone',
+        'contact_email',
+        'is_active',
+        'status',
+        'onboarding_stage',
+        'account_manager_id',
+        'allowed_services',
+    ];
 
+    public function equipment()
+    {
+        return $this->hasMany(Equipment::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class)->orderBy('service_date', 'desc');
+    }
 
     public function serviceRecords()
     {

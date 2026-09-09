@@ -37,11 +37,17 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 use App\Modules\Company\Controllers\CompanyController;
 use App\Modules\Profile\Controllers\ProfileController;
 use App\Modules\ServiceRecord\Controllers\ServiceRecordController;
+use App\Modules\Report\Controllers\ReportController;
+use App\Modules\Report\Controllers\EquipmentController;
+use App\Modules\Report\Controllers\SoftwareCatalogController;
 
 Route::middleware(['auth'])->group(function () {
     // Patrones globales para parámetros, previene errores 500 si se inyectan letras o caracteres en los IDs
     Route::pattern('company', '[0-9]+');
     Route::pattern('record', '[0-9]+');
+    Route::pattern('report', '[0-9]+');
+    Route::pattern('equipment', '[0-9]+');
+    Route::pattern('software', '[0-9]+');
 
     Route::get('/dashboard', [\App\Modules\Dashboard\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [\App\Modules\Search\Controllers\SearchController::class, 'index'])->name('search');
@@ -94,6 +100,22 @@ Route::middleware(['auth'])->group(function () {
     // Importar Excel por empresa
     Route::get('companies/{company}/import',  [\App\Modules\ServiceRecord\Controllers\ImportController::class, 'show'])  ->name('companies.import.show');
     Route::post('companies/{company}/import', [\App\Modules\ServiceRecord\Controllers\ImportController::class, 'store']) ->name('companies.import.store');
+
+    // Módulo de Reportes Técnicos (Motor Genérico / FOR-TI-001)
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+    Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::get('/reports/{report}/print', [ReportController::class, 'print'])->name('reports.print');
+    Route::post('/reports/{report}/confirm', [ReportController::class, 'confirm'])->name('reports.confirm');
+    Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->middleware('role:SuperAdmin')->name('reports.destroy');
+    Route::get('/reports/api/equipment/{company}', [ReportController::class, 'getEquipmentByCompany'])->name('reports.api.equipment');
+
+    // Equipos y Hoja de Vida
+    Route::resource('equipment', EquipmentController::class)->except(['create', 'edit']);
+
+    // Catálogo de Programas Administrable
+    Route::resource('software-catalog', SoftwareCatalogController::class)->except(['create', 'show', 'edit']);
     
     // Gestión de Usuarios y Auditoría (Solo SuperAdmin)
     Route::middleware('role:SuperAdmin')->group(function () {
