@@ -4,6 +4,7 @@ namespace App\Modules\Report\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\SoftwareCatalog;
+use App\Models\SoftwareBaseline;
 use Illuminate\Http\Request;
 
 class SoftwareCatalogController extends Controller
@@ -16,7 +17,11 @@ class SoftwareCatalogController extends Controller
             ->get()
             ->groupBy('category');
 
-        return view('reports.software.index', compact('software'));
+        $baselines = SoftwareBaseline::orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('reports.software.index', compact('software', 'baselines'));
     }
 
     public function store(Request $request)
@@ -90,5 +95,74 @@ class SoftwareCatalogController extends Controller
         SoftwareCatalog::where('category', $categoryName)->delete();
 
         return redirect()->back()->with('success', 'Categoría "' . $categoryName . '" y sus ' . $count . ' programa(s) eliminados.');
+    }
+
+    // --- MÉTODOS PARA GESTIÓN DE PERFILES (BASELINES) ---
+
+    public function storeBaseline(Request $request)
+    {
+        $this->requireWriteAccess();
+
+        $validated = $request->validate([
+            'name'         => 'required|string|max:100',
+            'description'  => 'nullable|string|max:255',
+            'icon'         => 'nullable|string|max:50',
+            'software_ids' => 'nullable|array',
+            'software_ids.*' => 'integer|exists:software_catalog,id',
+        ]);
+
+        if ($request->boolean('is_default')) {
+            SoftwareBaseline::where('is_default', true)->update(['is_default' => false]);
+        }
+
+        SoftwareBaseline::create([
+            'name'         => trim($validated['name']),
+            'description'  => trim($validated['description'] ?? ''),
+            'icon'         => $validated['icon'] ?: 'bi-briefcase-fill',
+            'software_ids' => array_map('intval', $validated['software_ids'] ?? []),
+            'is_default'   => $request->boolean('is_default'),
+        ]);
+
+        return redirect()->back()->with('success', 'Perfil de software "' . $validated['name'] . '" creado exitosamente.');
+    }
+
+    public function updateBaseline(Request $request, $id)
+    {
+        $this->requireWriteAccess();
+
+        $baseline = SoftwareBaseline::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'         => 'required|string|max:100',
+            'description'  => 'nullable|string|max:255',
+            'icon'         => 'nullable|string|max:50',
+            'software_ids' => 'nullable|array',
+            'software_ids.*' => 'integer|exists:software_catalog,id',
+        ]);
+
+        if ($request->boolean('is_default')) {
+            SoftwareBaseline::where('is_default', true)->where('id', '!=', $id)->update(['is_default' => false]);
+        }
+
+        $baseline->update([
+            'name'         => trim($validated['name']),
+            'description'  => trim($validated['description'] ?? ''),
+            'icon'         => $validated['icon'] ?: $baseline->icon,
+            'software_ids' => array_map('intval', $validated['software_ids'] ?? []),
+            'is_default'   => $request->boolean('is_default'),
+        ]);
+
+        return redirect()->back()->with('success', 'Perfil "' . $baseline->name . '" actualizado correctamente.');
+    }
+
+    public function destroyBaseline(Request $request, $id)
+    {
+        $this->requireWriteAccess();
+
+        $baseline = SoftwareBaseline::findOrFail($id);
+        $name = $baseline->name;
+        $baseline->delete();
+
+        return redirect()->back()->with('success', 'Perfil "' . $name . '" eliminado.');
     }
 }

@@ -11,6 +11,7 @@ use App\Models\ReportSignature;
 use App\Models\ReportSoftware;
 use App\Models\ReportType;
 use App\Models\SoftwareCatalog;
+use App\Models\SoftwareBaseline;
 use App\Models\User;
 use App\Modules\Report\Services\ReportCodeGenerator;
 use Illuminate\Http\Request;
@@ -92,6 +93,8 @@ class ReportController extends Controller
             ->get()
             ->groupBy('category');
 
+        $baselines = SoftwareBaseline::orderBy('is_default', 'desc')->orderBy('name')->get();
+
         $nextCode = $this->codeGenerator->generate($reportType);
 
         return view('reports.create', compact(
@@ -101,6 +104,7 @@ class ReportController extends Controller
             'selectedCompanyId',
             'equipments',
             'softwareCatalog',
+            'baselines',
             'nextCode'
         ));
     }

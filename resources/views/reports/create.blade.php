@@ -241,6 +241,29 @@
                 Marca los programas que se instalaron en el equipo. En el reporte final se detallará la lista completa de software verificado.
             </p>
 
+            @if(isset($baselines) && $baselines->count() > 0)
+            <div class="p-3 mb-4 rounded-3 border" style="background: rgba(99,102,241,0.05); border-color: rgba(99,102,241,0.25) !important;">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <span class="fw-bold fs-13 text-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-magic me-1"></i> Carga Rápida por Perfil (Software Baseline):
+                    </span>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-muted fs-12 text-decoration-none" onclick="clearAllSoftware()">
+                        <i class="bi bi-x-circle me-1"></i> Desmarcar todo
+                    </button>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach($baselines as $b)
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-semibold d-inline-flex align-items-center gap-2 rounded-pill px-3 py-1"
+                            data-ids='@json($b->software_ids ?? [])'
+                            data-name="{{ $b->name }}"
+                            onclick="applyBaseline(this)">
+                        <i class="bi {{ $b->icon ?: 'bi-briefcase-fill' }}"></i> {{ $b->name }}
+                    </button>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <div class="row g-4">
                 @foreach($softwareCatalog as $category => $programs)
                 <div class="col-md-6">

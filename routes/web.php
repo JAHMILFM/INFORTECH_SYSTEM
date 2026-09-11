@@ -118,6 +118,9 @@ Route::middleware(['auth'])->group(function () {
     // CatÃ¡logo de Programas Administrable
     Route::resource('software-catalog', SoftwareCatalogController::class)->except(['create', 'show', 'edit']);
     Route::delete('/software-catalog-category', [SoftwareCatalogController::class, 'destroyCategory'])->name('software-catalog.destroyCategory');
+    Route::post('/software-baselines', [SoftwareCatalogController::class, 'storeBaseline'])->name('software-baselines.store');
+    Route::put('/software-baselines/{id}', [SoftwareCatalogController::class, 'updateBaseline'])->name('software-baselines.update');
+    Route::delete('/software-baselines/{id}', [SoftwareCatalogController::class, 'destroyBaseline'])->name('software-baselines.destroy');
     
     // GestiÃ³n de Usuarios y AuditorÃ­a (Solo SuperAdmin)
     Route::middleware('role:SuperAdmin')->group(function () {
