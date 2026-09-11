@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Modules\Report\Controllers;
 
@@ -38,7 +38,7 @@ class SoftwareCatalogController extends Controller
             'is_active'       => true,
         ]);
 
-        return redirect()->back()->with('success', 'Programa agregado al catálogo exitosamente.');
+        return redirect()->back()->with('success', 'Programa agregado al catalogo exitosamente.');
     }
 
     public function update(Request $request, SoftwareCatalog $software)
@@ -68,18 +68,16 @@ class SoftwareCatalogController extends Controller
     {
         $this->requireWriteAccess();
 
-        // Eliminar categoría completa
         if ($request->boolean('delete_category') && $request->filled('category_name')) {
             $categoryName = $request->input('category_name');
             $count = SoftwareCatalog::where('category', $categoryName)->count();
             SoftwareCatalog::where('category', $categoryName)->delete();
-            return redirect()->back()->with('success', "Categoría \"{$categoryName}\" y sus {$count} programa(s) eliminados.");
+            return redirect()->back()->with('success', "Categoria eliminada con {$count} programa(s).");
         }
 
-        // Eliminar solo el programa
         $name = $software->name;
         $software->delete();
 
-        return redirect()->back()->with('success', "Programa \"{$name}\" eliminado del catálogo.");
+        return redirect()->back()->with('success', "Programa eliminado del catalogo.");
     }
 }
