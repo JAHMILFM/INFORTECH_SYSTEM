@@ -38,12 +38,14 @@ class SoftwareCatalogController extends Controller
             'is_active'       => true,
         ]);
 
-        return redirect()->back()->with('success', 'Programa agregado al catalogo exitosamente.');
+        return redirect()->back()->with('success', 'Programa agregado al catálogo exitosamente.');
     }
 
-    public function update(Request $request, SoftwareCatalog $software)
+    public function update(Request $request, $id)
     {
         $this->requireWriteAccess();
+
+        $softwareCatalog = SoftwareCatalog::findOrFail($id);
 
         $validated = $request->validate([
             'name'            => 'required|string|max:100',
@@ -53,23 +55,26 @@ class SoftwareCatalogController extends Controller
             'is_active'       => 'nullable|boolean',
         ]);
 
-        $software->update([
+        $softwareCatalog->update([
             'name'            => trim($validated['name']),
             'category'        => trim($validated['category']),
             'requires_detail' => $request->boolean('requires_detail'),
-            'sort_order'      => $validated['sort_order'] ?? $software->sort_order,
+            'sort_order'      => $validated['sort_order'] ?? $softwareCatalog->sort_order,
             'is_active'       => $request->boolean('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'Programa "' . $software->name . '" actualizado correctamente.');
+        return redirect()->back()->with('success', 'Programa "' . $softwareCatalog->name . '" actualizado correctamente.');
     }
 
-    public function destroy(Request $request, SoftwareCatalog $software)
+    public function destroy(Request $request, $id)
     {
         $this->requireWriteAccess();
-        $name = $software->name;
-        $software->delete();
-        return redirect()->back()->with('success', 'Programa "' . $name . '" eliminado del catalogo.');
+
+        $softwareCatalog = SoftwareCatalog::findOrFail($id);
+        $name = $softwareCatalog->name;
+        $softwareCatalog->delete();
+
+        return redirect()->back()->with('success', 'Programa "' . $name . '" eliminado del catálogo.');
     }
 
     public function destroyCategory(Request $request)
@@ -84,6 +89,6 @@ class SoftwareCatalogController extends Controller
         $count = SoftwareCatalog::where('category', $categoryName)->count();
         SoftwareCatalog::where('category', $categoryName)->delete();
 
-        return redirect()->back()->with('success', 'Categoria "' . $categoryName . '" y sus ' . $count . ' programa(s) eliminados.');
+        return redirect()->back()->with('success', 'Categoría "' . $categoryName . '" y sus ' . $count . ' programa(s) eliminados.');
     }
 }

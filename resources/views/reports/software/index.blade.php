@@ -62,7 +62,7 @@
 <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
     <div class="search-bar">
         <i class="bi bi-search" style="color:var(--text-muted);"></i>
-        <input type="text" id="srch" placeholder="Buscar programa o categoría…" autocomplete="off" oninput="doSearch(this.value)">
+        <input type="text" id="srch" placeholder="Buscar programa o categoría..." autocomplete="off" oninput="doSearch(this.value)">
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <span class="pill" style="background:rgba(99,102,241,.13);color:#818cf8;">
@@ -120,172 +120,189 @@
                 <div style="font-size:11px;color:var(--text-muted);"><i class="bi bi-sort-numeric-down me-1"></i>Orden {{ $prog->sort_order }}</div>
                 @endif
             </div>
+
             <div class="act-btns">
                 <button class="xbtn {{ $prog->is_active ? 'x-on' : 'x-off' }}"
                         title="{{ $prog->is_active ? 'Deshabilitar' : 'Habilitar' }}"
                         onclick="confirmToggle(this)">
-                    <i class="bi {{ $prog->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}" style="font-size:18px;"></i>
+                    <i class="bi {{ $prog->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
                 </button>
-                <button class="xbtn x-ed" title="Editar" onclick="openEdit(this)">
+                <button class="xbtn x-ed" title="Editar programa" onclick="openEdit(this)">
                     <i class="bi bi-pencil-fill"></i>
                 </button>
-                <button class="xbtn x-rm" title="Eliminar" onclick="confirmDel(this)">
+                <button class="xbtn x-rm" title="Eliminar programa" onclick="confirmDel(this)">
                     <i class="bi bi-trash-fill"></i>
                 </button>
             </div>
         </div>
         @endforeach
 
-        <button class="add-cat-btn"
-                onclick="showModal('mAdd'); document.getElementById('aName').value=''; document.getElementById('aCat').value='{{ $category ?: 'General' }}';">
-            <i class="bi bi-plus-circle me-1"></i>Agregar en "{{ $category ?: 'General' }}"
+        <button class="add-cat-btn" onclick="showModal('mAdd'); document.getElementById('aCat').value='{{ $category }}';">
+            <i class="bi bi-plus-lg me-1"></i>Agregar a {{ $category }}
         </button>
         </div>
     </div>
 </div>
 @empty
 <div class="col-12 text-center py-5">
-    <i class="bi bi-folder-x d-block mb-3" style="font-size:48px;opacity:.35;color:var(--text-muted);"></i>
-    <p style="color:var(--text-muted);">No hay categorías.
-        <a href="#" onclick="showModal('mCat');return false;" style="color:var(--primary);">Crea la primera.</a>
-    </p>
+    <i class="bi bi-inbox text-muted display-4"></i>
+    <p class="text-muted mt-2">No hay programas en el catálogo.</p>
 </div>
 @endforelse
 </div>
 
-<div id="noRes" style="display:none;text-align:center;padding:60px 20px;">
-    <i class="bi bi-search d-block mb-3" style="font-size:48px;opacity:.35;color:var(--text-muted);"></i>
-    <p style="color:var(--text-muted);">Sin resultados para "<b id="srchTerm"></b>"</p>
-    <button class="btn btn-sm btn-outline-secondary" onclick="doSearch('')">Limpiar búsqueda</button>
+<div id="noRes" class="text-center py-5" style="display:none;">
+    <i class="bi bi-search text-muted display-4"></i>
+    <p class="text-muted mt-2">No hay programas que coincidan con "<span id="srchTerm"></span>".</p>
 </div>
 
-{{-- ═══ FORMS OCULTOS ══════════════════════════════════════════ --}}
+{{-- FORMS OCULTOS --}}
 <form id="fToggle" method="POST" style="display:none;">
-    @csrf @method('PUT')
-    <input type="hidden" name="name"            id="tgN">
-    <input type="hidden" name="category"        id="tgC">
-    <input type="hidden" name="sort_order"      id="tgS">
+    @csrf
+    @method('PUT')
+    <input type="hidden" name="name" id="tgN">
+    <input type="hidden" name="category" id="tgC">
+    <input type="hidden" name="sort_order" id="tgS">
     <input type="hidden" name="requires_detail" id="tgR">
-    <input type="hidden" name="is_active"       id="tgA">
+    <input type="hidden" name="is_active" id="tgA">
 </form>
+
 <form id="fDel" method="POST" style="display:none;">
-    @csrf @method('DELETE')
+    @csrf
+    @method('DELETE')
 </form>
+
 <form id="fDelCat" action="{{ route('software-catalog.destroyCategory') }}" method="POST" style="display:none;">
-    @csrf @method('DELETE')
+    @csrf
+    @method('DELETE')
     <input type="hidden" name="category_name" id="dcCat">
 </form>
 
-{{-- ═══ MODAL AGREGAR ═══════════════════════════════════════════ --}}
+{{-- MODALES --}}
+
+{{-- Modal Agregar Programa --}}
 <div class="modal fade" id="mAdd" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="{{ route('software-catalog.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
+                    <h5 class="modal-header-title fw-bold" style="color:var(--text);">
                         <i class="bi bi-plus-circle-fill me-2" style="color:var(--primary);"></i>Agregar Programa
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Nombre <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="aName" class="form-control" required
-                               placeholder="Ej. Microsoft 365, AutoCAD…">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Nombre del programa <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="aName" class="form-control" placeholder="Ej: Office 2021, AutoCAD, Photoshop..." required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px;">Categoría <span class="text-danger">*</span></label>
-                        <input type="text" name="category" id="aCat" class="form-control" required
-                               list="catListA" placeholder="Escribe o selecciona…">
-                        <datalist id="catListA">
-                            @foreach($software->keys() as $k)<option value="{{ $k }}">@endforeach
+                        <input type="text" name="category" id="aCat" class="form-control" list="catList" placeholder="Ej: Ofimática, Diseño, CAD..." required>
+                        <datalist id="catList">
+                            @foreach($software->keys() as $c)
+                            <option value="{{ $c }}">
+                            @endforeach
                         </datalist>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Orden <small class="text-muted">(menor = primero)</small></label>
-                        <input type="number" name="sort_order" class="form-control" value="0" min="0">
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="aReq">
-                        <label class="form-check-label" style="font-size:13px;" for="aReq">Requiere especificar versión / extensiones</label>
+                    <div class="row g-2">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Orden de presentación</label>
+                            <input type="number" name="sort_order" class="form-control" value="0" min="0">
+                        </div>
+                        <div class="col-6 mb-3 d-flex align-items-center pt-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="aReq">
+                                <label class="form-check-label fw-semibold" for="aReq" style="font-size:13px;">¿Requiere detalle?</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-plus-circle me-1"></i>Guardar</button>
+                    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-check-lg me-1"></i>Guardar Programa</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-{{-- ═══ MODAL EDITAR ════════════════════════════════════════════ --}}
+{{-- Modal Editar Programa --}}
 <div class="modal fade" id="mEdit" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form id="fEdit" method="POST">
-                @csrf @method('PUT')
+                @csrf
+                @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-pencil-fill me-2" style="color:#818cf8;"></i>Editar Programa
+                    <h5 class="modal-header-title fw-bold" style="color:var(--text);">
+                        <i class="bi bi-pencil-square me-2" style="color:var(--primary);"></i>Editar Programa
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Nombre <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold" style="font-size:13px;">Nombre del programa <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="eName" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px;">Categoría <span class="text-danger">*</span></label>
-                        <input type="text" name="category" id="eCat" class="form-control" required list="catListE">
-                        <datalist id="catListE">
-                            @foreach($software->keys() as $k)<option value="{{ $k }}">@endforeach
+                        <input type="text" name="category" id="eCat" class="form-control" list="catListEdit" required>
+                        <datalist id="catListEdit">
+                            @foreach($software->keys() as $c)
+                            <option value="{{ $c }}">
+                            @endforeach
                         </datalist>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Orden</label>
-                        <input type="number" name="sort_order" id="eSort" class="form-control" min="0">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Orden</label>
+                            <input type="number" name="sort_order" id="eSort" class="form-control" min="0">
+                        </div>
+                        <div class="col-6 d-flex align-items-center pt-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="eReq">
+                                <label class="form-check-label fw-semibold" for="eReq" style="font-size:13px;">¿Requiere detalle?</label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="eReq">
-                        <label class="form-check-label" style="font-size:13px;" for="eReq">Requiere especificar versión / extensiones</label>
-                    </div>
-                    <div class="form-check">
+                    <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="is_active" value="1" id="eActive">
-                        <label class="form-check-label" style="font-size:13px;" for="eActive">Programa activo (visible en reportes)</label>
+                        <label class="form-check-label fw-semibold" for="eActive" style="font-size:13px;">Programa Habilitado / Activo</label>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-save me-1"></i>Guardar Cambios</button>
+                    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-save me-1"></i>Actualizar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-{{-- ═══ MODAL NUEVA CATEGORÍA ══════════════════════════════════ --}}
+{{-- Modal Nueva Categoría --}}
 <div class="modal fade" id="mCat" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
             <form action="{{ route('software-catalog.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="name" value="_placeholder_">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-folder-plus me-2" style="color:#4ade80;"></i>Nueva Categoría
+                    <h5 class="modal-header-title fw-bold" style="color:var(--text);">
+                        <i class="bi bi-folder-plus me-2" style="color:var(--primary);"></i>Nueva Categoría
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <label class="form-label fw-semibold" style="font-size:13px;">Nombre <span class="text-danger">*</span></label>
-                    <input type="text" name="category" id="nCatInput" class="form-control"
-                           placeholder="Ej. Seguridad, Diseño, CAD…" required>
-                    <small class="d-block mt-2" style="color:var(--text-muted);">
-                        Se creará con un programa temporal que podrás eliminar.
-                    </small>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Nombre de la Categoría <span class="text-danger">*</span></label>
+                        <input type="text" name="category" id="nCatInput" class="form-control" placeholder="Ej: Antivirus, Antivirus/Seguridad..." required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Primer Programa <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Ej: ESET NOD32, Kaspersky..." required>
+                    </div>
+                    <small class="text-muted" style="font-size:11px;">Toda categoría debe tener al menos 1 programa inicial.</small>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -302,7 +319,6 @@
 
 @section('scripts')
 <script>
-/* ── Helpers ─────────────────────────────────────────────────── */
 var BASE = '{{ url("software-catalog") }}';
 
 function showModal(id) {
@@ -316,7 +332,6 @@ function getRow(btn) {
     return btn.closest('[data-prog-id]');
 }
 
-/* ── Editar programa ─────────────────────────────────────────── */
 function openEdit(btn) {
     var row = getRow(btn);
     var id  = row.dataset.progId;
@@ -329,7 +344,6 @@ function openEdit(btn) {
     showModal('mEdit');
 }
 
-/* ── Toggle habilitar / deshabilitar ────────────────────────── */
 function confirmToggle(btn) {
     var row    = getRow(btn);
     var active = row.dataset.progActive === '1';
@@ -339,7 +353,7 @@ function confirmToggle(btn) {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             background:'var(--surface)', color:'var(--text)',
-            title: active ? '⛔ Deshabilitar' : '✅ Habilitar',
+            title: active ? 'Deshabilitar' : 'Habilitar',
             text: msg,
             icon: active ? 'warning' : 'question',
             showCancelButton: true,
@@ -363,7 +377,6 @@ function submitToggle(row, active) {
     f.submit();
 }
 
-/* ── Eliminar programa ───────────────────────────────────────── */
 function confirmDel(btn) {
     var row  = getRow(btn);
     var name = row.dataset.progName;
@@ -371,7 +384,7 @@ function confirmDel(btn) {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             background:'var(--surface)', color:'var(--text)',
-            title: '🗑️ Eliminar programa',
+            title: 'Eliminar programa',
             html: '¿Eliminar <b>' + name + '</b>?<br><small style="color:#f87171;">Esta acción es irreversible.</small>',
             icon: 'warning', showCancelButton: true,
             confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444'
@@ -387,7 +400,6 @@ function submitDel(id) {
     f.submit();
 }
 
-/* ── Eliminar categoría completa ────────────────────────────── */
 function confirmDelCat(btn) {
     var cat = btn.dataset.cat;
     var cnt = btn.dataset.cnt;
@@ -395,8 +407,8 @@ function confirmDelCat(btn) {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             background:'var(--surface)', color:'var(--text)',
-            title: '📁 Eliminar categoría',
-            html: '¿Eliminar <b>' + cat + '</b> con <b>' + cnt + ' programa(s)</b>?<br><span style="color:#f87171;font-size:13px;">⚠️ Irreversible.</span>',
+            title: 'Eliminar categoría',
+            html: '¿Eliminar <b>' + cat + '</b> con <b>' + cnt + ' programa(s)</b>?<br><span style="color:#f87171;font-size:13px;">Acción Irreversible.</span>',
             icon: 'error', showCancelButton: true,
             confirmButtonText: 'Eliminar todo', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444',
             input: 'checkbox', inputValue: 0, inputPlaceholder: 'Entiendo que es irreversible',
@@ -412,7 +424,6 @@ function submitDelCat(cat) {
     document.getElementById('fDelCat').submit();
 }
 
-/* ── Búsqueda en tiempo real ────────────────────────────────── */
 function doSearch(q) {
     document.getElementById('srch').value = q;
     q = q.trim().toLowerCase();
@@ -440,7 +451,6 @@ function doSearch(q) {
     document.getElementById('grid').style.display    = (!vis && q) ? 'none'  : '';
 }
 
-/* ── Flash notifications ─────────────────────────────────────── */
 window.addEventListener('load', function() {
     var showNotif = function(type, text) {
         if (typeof Swal !== 'undefined') {
