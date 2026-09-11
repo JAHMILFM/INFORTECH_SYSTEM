@@ -72,12 +72,11 @@ class SoftwareCatalogController extends Controller
             $categoryName = $request->input('category_name');
             $count = SoftwareCatalog::where('category', $categoryName)->count();
             SoftwareCatalog::where('category', $categoryName)->delete();
-            return redirect()->back()->with('success', "Categoria eliminada con {$count} programa(s).");
+            return redirect()->back()->with('success', 'Categoria "' . $categoryName . '" eliminada con ' . $count . ' programa(s).');
         }
 
         $name = $software->name;
         $software->delete();
-
-        return redirect()->back()->with('success', "Programa eliminado del catalogo.");
+        return redirect()->back()->with('success', 'Programa "' . $name . '" eliminado del catalogo.');
     }
 }
