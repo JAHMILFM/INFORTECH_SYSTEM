@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Modules\Auth\Controllers\AuthController;
@@ -9,7 +9,7 @@ Route::get('/assets/{path}', function ($path) {
     $basePath = storage_path('app/assets');
     $fullPath = realpath($basePath . '/' . $path);
     
-    // Prevención de Path Traversal (LFI): Asegurar que el archivo resuelto siga dentro de la carpeta assets
+    // PrevenciÃ³n de Path Traversal (LFI): Asegurar que el archivo resuelto siga dentro de la carpeta assets
     if (!$fullPath || !str_starts_with($fullPath, realpath($basePath))) {
         abort(404);
     }
@@ -42,7 +42,7 @@ use App\Modules\Report\Controllers\EquipmentController;
 use App\Modules\Report\Controllers\SoftwareCatalogController;
 
 Route::middleware(['auth'])->group(function () {
-    // Patrones globales para parámetros, previene errores 500 si se inyectan letras o caracteres en los IDs
+    // Patrones globales para parÃ¡metros, previene errores 500 si se inyectan letras o caracteres en los IDs
     Route::pattern('company', '[0-9]+');
     Route::pattern('record', '[0-9]+');
     Route::pattern('report', '[0-9]+');
@@ -53,12 +53,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/search', [\App\Modules\Search\Controllers\SearchController::class, 'index'])->name('search');
     Route::get('/search/live', [\App\Modules\Search\Controllers\SearchController::class, 'liveSearch'])->name('search.live');
     
-    // Exportación Global Maestra (Solo SuperAdmin)
+    // ExportaciÃ³n Global Maestra (Solo SuperAdmin)
     Route::get('/export-master', [\App\Modules\Dashboard\Controllers\DashboardController::class, 'exportMaster'])
         ->middleware('role:SuperAdmin')
         ->name('export.master');
 
-    // Configuración
+    // ConfiguraciÃ³n
     Route::resource('companies', CompanyController::class)->only(['index', 'create', 'store', 'show', 'update']);
     Route::delete('companies/{company}', [CompanyController::class, 'destroy'])->middleware('role:SuperAdmin')->name('companies.destroy');
 
@@ -68,12 +68,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('companies/{company}/services/{type}',           [ServiceRecordController::class, 'store'])  ->name('companies.services.store');
     Route::put('companies/{company}/services/{type}/{record}', [\App\Modules\ServiceRecord\Controllers\ServiceRecordController::class, 'update']) ->name('companies.services.update');
     Route::post('companies/{company}/services/{type}/{record}/toggle-status', [\App\Modules\ServiceRecord\Controllers\ServiceRecordController::class, 'toggleStatus'])->name('companies.services.toggle');
-    // Prevención de Fuerza Bruta en Sesión: Limitar intentos de adivinar contraseña a 5 por minuto
+    // PrevenciÃ³n de Fuerza Bruta en SesiÃ³n: Limitar intentos de adivinar contraseÃ±a a 5 por minuto
     Route::post('companies/{company}/services/{type}/{record}/reveal-password', [\App\Modules\ServiceRecord\Controllers\ServiceRecordController::class, 'revealPassword'])
         ->middleware('throttle:reveals')
         ->name('companies.services.reveal');
     
-    // Configuración Rápida Zimbra
+    // ConfiguraciÃ³n RÃ¡pida Zimbra
     Route::post('/companies/{company}/zimbra-config', [CompanyController::class, 'updateZimbraConfig'])->name('companies.updateZimbraConfig');
     Route::post('/companies/{company}/zimbra-password/reveal', [CompanyController::class, 'revealZimbraPassword'])
         ->middleware('throttle:reveals')
@@ -81,7 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/companies/{company}/zimbra/reveal', [CompanyController::class, 'revealZimbraPassword'])
         ->middleware('throttle:reveals');
 
-    // Configuración Rápida Nextcloud
+    // ConfiguraciÃ³n RÃ¡pida Nextcloud
     Route::post('/companies/{company}/nextcloud-config', [CompanyController::class, 'updateNextcloudConfig'])->name('companies.updateNextcloudConfig');
     Route::post('/companies/{company}/nextcloud-password/reveal', [CompanyController::class, 'revealNextcloudPassword'])
         ->middleware('throttle:5,1')
@@ -89,7 +89,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/companies/{company}/nextcloud/reveal', [CompanyController::class, 'revealNextcloudPassword'])
         ->middleware('throttle:5,1');
 
-    // Configuración de Administrador por Servicio
+    // ConfiguraciÃ³n de Administrador por Servicio
     Route::post('/companies/{company}/services/{type}/admin-config', [\App\Modules\ServiceRecord\Controllers\ServiceRecordController::class, 'updateAdminConfig'])->name('companies.services.updateAdminConfig');
     Route::post('/companies/{company}/services/{type}/admin-password/reveal', [\App\Modules\ServiceRecord\Controllers\ServiceRecordController::class, 'revealAdminPassword'])
         ->middleware('throttle:5,1')
@@ -101,7 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('companies/{company}/import',  [\App\Modules\ServiceRecord\Controllers\ImportController::class, 'show'])  ->name('companies.import.show');
     Route::post('companies/{company}/import', [\App\Modules\ServiceRecord\Controllers\ImportController::class, 'store']) ->name('companies.import.store');
 
-    // Módulo de Reportes Técnicos (Motor Genérico / FOR-TI-001)
+    // MÃ³dulo de Reportes TÃ©cnicos (Motor GenÃ©rico / FOR-TI-001)
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
@@ -115,10 +115,11 @@ Route::middleware(['auth'])->group(function () {
     // Equipos y Hoja de Vida
     Route::resource('equipment', EquipmentController::class)->except(['create', 'edit']);
 
-    // Catálogo de Programas Administrable
+    // CatÃ¡logo de Programas Administrable
     Route::resource('software-catalog', SoftwareCatalogController::class)->except(['create', 'show', 'edit']);
+    Route::delete('/software-catalog-category', [SoftwareCatalogController::class, 'destroyCategory'])->name('software-catalog.destroyCategory');
     
-    // Gestión de Usuarios y Auditoría (Solo SuperAdmin)
+    // GestiÃ³n de Usuarios y AuditorÃ­a (Solo SuperAdmin)
     Route::middleware('role:SuperAdmin')->group(function () {
         Route::resource('users', \App\Modules\User\Controllers\UserController::class)->except(['create', 'show', 'edit']);
         Route::get('audit-logs', [\App\Modules\AuditLog\Controllers\AuditLogController::class, 'index'])->name('audit.index');
@@ -131,3 +132,4 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:5,1')
         ->name('profile.password');
 });
+

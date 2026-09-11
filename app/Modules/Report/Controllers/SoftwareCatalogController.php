@@ -56,27 +56,34 @@ class SoftwareCatalogController extends Controller
         $software->update([
             'name'            => trim($validated['name']),
             'category'        => trim($validated['category']),
-            'requires_detail' => $request->has('requires_detail'),
+            'requires_detail' => $request->boolean('requires_detail'),
             'sort_order'      => $validated['sort_order'] ?? $software->sort_order,
-            'is_active'       => $request->has('is_active'),
+            'is_active'       => $request->boolean('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'Programa actualizado correctamente.');
+        return redirect()->back()->with('success', 'Programa "' . $software->name . '" actualizado correctamente.');
     }
 
     public function destroy(Request $request, SoftwareCatalog $software)
     {
         $this->requireWriteAccess();
-
-        if ($request->boolean('delete_category') && $request->filled('category_name')) {
-            $categoryName = $request->input('category_name');
-            $count = SoftwareCatalog::where('category', $categoryName)->count();
-            SoftwareCatalog::where('category', $categoryName)->delete();
-            return redirect()->back()->with('success', 'Categoria "' . $categoryName . '" eliminada con ' . $count . ' programa(s).');
-        }
-
         $name = $software->name;
         $software->delete();
         return redirect()->back()->with('success', 'Programa "' . $name . '" eliminado del catalogo.');
+    }
+
+    public function destroyCategory(Request $request)
+    {
+        $this->requireWriteAccess();
+
+        $request->validate([
+            'category_name' => 'required|string|max:100',
+        ]);
+
+        $categoryName = $request->input('category_name');
+        $count = SoftwareCatalog::where('category', $categoryName)->count();
+        SoftwareCatalog::where('category', $categoryName)->delete();
+
+        return redirect()->back()->with('success', 'Categoria "' . $categoryName . '" y sus ' . $count . ' programa(s) eliminados.');
     }
 }
