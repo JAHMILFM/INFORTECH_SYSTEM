@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Modules\Report\Controllers;
 
@@ -12,6 +12,7 @@ class SoftwareCatalogController extends Controller
     {
         $software = SoftwareCatalog::orderBy('category')
             ->orderBy('sort_order')
+            ->orderBy('name')
             ->get()
             ->groupBy('category');
 
@@ -60,15 +61,25 @@ class SoftwareCatalogController extends Controller
             'is_active'       => $request->has('is_active'),
         ]);
 
-        return redirect()->back()->with('success', 'Programa actualizado en el catálogo.');
+        return redirect()->back()->with('success', 'Programa actualizado correctamente.');
     }
 
-    public function destroy(SoftwareCatalog $software)
+    public function destroy(Request $request, SoftwareCatalog $software)
     {
         $this->requireWriteAccess();
 
+        // Eliminar categoría completa
+        if ($request->boolean('delete_category') && $request->filled('category_name')) {
+            $categoryName = $request->input('category_name');
+            $count = SoftwareCatalog::where('category', $categoryName)->count();
+            SoftwareCatalog::where('category', $categoryName)->delete();
+            return redirect()->back()->with('success', "Categoría \"{$categoryName}\" y sus {$count} programa(s) eliminados.");
+        }
+
+        // Eliminar solo el programa
+        $name = $software->name;
         $software->delete();
 
-        return redirect()->back()->with('success', 'Programa eliminado del catálogo.');
+        return redirect()->back()->with('success', "Programa \"{$name}\" eliminado del catálogo.");
     }
 }
