@@ -31,6 +31,8 @@ class SoftwareCatalogController extends Controller
         $validated = $request->validate([
             'name'            => 'required|string|max:100',
             'category'        => 'required|string|max:100',
+            'description'     => 'nullable|string|max:255',
+            'default_version' => 'nullable|string|max:100',
             'requires_detail' => 'nullable|boolean',
             'sort_order'      => 'nullable|integer',
         ]);
@@ -38,6 +40,8 @@ class SoftwareCatalogController extends Controller
         SoftwareCatalog::create([
             'name'            => trim($validated['name']),
             'category'        => trim($validated['category']),
+            'description'     => isset($validated['description']) ? trim($validated['description']) : null,
+            'default_version' => isset($validated['default_version']) ? trim($validated['default_version']) : null,
             'requires_detail' => $request->has('requires_detail'),
             'sort_order'      => $validated['sort_order'] ?? 0,
             'is_active'       => true,
@@ -55,6 +59,8 @@ class SoftwareCatalogController extends Controller
         $validated = $request->validate([
             'name'            => 'required|string|max:100',
             'category'        => 'required|string|max:100',
+            'description'     => 'nullable|string|max:255',
+            'default_version' => 'nullable|string|max:100',
             'requires_detail' => 'nullable|boolean',
             'sort_order'      => 'nullable|integer',
             'is_active'       => 'nullable|boolean',
@@ -63,6 +69,8 @@ class SoftwareCatalogController extends Controller
         $softwareCatalog->update([
             'name'            => trim($validated['name']),
             'category'        => trim($validated['category']),
+            'description'     => isset($validated['description']) ? trim($validated['description']) : $softwareCatalog->description,
+            'default_version' => isset($validated['default_version']) ? trim($validated['default_version']) : null,
             'requires_detail' => $request->boolean('requires_detail'),
             'sort_order'      => $validated['sort_order'] ?? $softwareCatalog->sort_order,
             'is_active'       => $request->boolean('is_active'),

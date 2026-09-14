@@ -14,7 +14,9 @@ class SoftwareCatalog extends Model
     protected $fillable = [
         'name',
         'category',
+        'description',
         'requires_detail',
+        'default_version',
         'is_active',
         'sort_order',
     ];

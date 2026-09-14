@@ -113,7 +113,12 @@
                         </span>
                         <div>
                             <div class="fw-bold" style="font-size:14px;color:var(--text);">{{ $category ?: 'General' }}</div>
-                            <div style="font-size:11px;color:var(--text-muted);">{{ $items->count() }} programa(s)</div>
+                            <div style="font-size:11px;color:var(--text-muted);">
+                                {{ $items->count() }} programa(s)
+                                @if($items->first()->description)
+                                    • <span class="text-info">{{ Str::limit($items->first()->description, 45) }}</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                     <button class="xbtn x-fd" title="Eliminar categoría completa"
@@ -132,15 +137,22 @@
                      data-prog-cat="{{ $prog->category }}"
                      data-prog-sort="{{ $prog->sort_order }}"
                      data-prog-req="{{ $prog->requires_detail ? '1' : '0' }}"
+                     data-prog-version="{{ $prog->default_version ?? '' }}"
+                     data-prog-desc="{{ $prog->description ?? '' }}"
                      data-prog-active="{{ $prog->is_active ? '1' : '0' }}"
                      data-srch-name="{{ strtolower($prog->name) }}">
                     <div style="min-width:0;flex:1;">
                         <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                             <span style="font-size:13px;font-weight:600;color:var(--text);">{{ $prog->name }}</span>
+                            @if($prog->default_version)
+                                <span class="badge bg-info text-dark" style="font-size:10px;font-weight:600;"><i class="bi bi-bookmark-fill me-1"></i>v. {{ $prog->default_version }}</span>
+                            @endif
                             @if($prog->requires_detail)<span class="tag-det"><i class="bi bi-tag-fill me-1"></i>Detallable</span>@endif
                             @if(!$prog->is_active)<span class="tag-off"><i class="bi bi-slash-circle me-1"></i>Inactivo</span>@endif
                         </div>
-                        @if($prog->sort_order > 0)
+                        @if($prog->description)
+                        <div style="font-size:11px;color:var(--text-muted);"><i class="bi bi-info-circle me-1"></i>{{ $prog->description }}</div>
+                        @elseif($prog->sort_order > 0)
                         <div style="font-size:11px;color:var(--text-muted);"><i class="bi bi-sort-numeric-down me-1"></i>Orden {{ $prog->sort_order }}</div>
                         @endif
                     </div>
@@ -266,6 +278,8 @@
     <input type="hidden" name="category" id="tgC">
     <input type="hidden" name="sort_order" id="tgS">
     <input type="hidden" name="requires_detail" id="tgR">
+    <input type="hidden" name="default_version" id="tgV">
+    <input type="hidden" name="description" id="tgD">
     <input type="hidden" name="is_active" id="tgA">
 </form>
 
@@ -302,28 +316,34 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px;">Nombre del programa <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="aName" class="form-control" placeholder="Ej: Office 2021, AutoCAD, Photoshop..." required>
+                        <input type="text" name="name" id="aName" class="form-control" placeholder="Ej: AutoCAD, Revit, WinRAR, Python..." required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px;">Categoría <span class="text-danger">*</span></label>
-                        <input type="text" name="category" id="aCat" class="form-control" list="catList" placeholder="Ej: Ofimática, Diseño, CAD..." required>
+                        <input type="text" name="category" id="aCat" class="form-control" list="catList" placeholder="Ej: Diseño CAD / BIM, Ofimática..." required>
                         <datalist id="catList">
                             @foreach($software->keys() as $c)
                             <option value="{{ $c }}">
                             @endforeach
                         </datalist>
                     </div>
-                    <div class="row g-2">
-                        <div class="col-6 mb-3">
-                            <label class="form-label fw-semibold" style="font-size:13px;">Orden de presentación</label>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Versión Sugerida / Defecto</label>
+                            <input type="text" name="default_version" id="aVersion" class="form-control" placeholder="Ej: 2024 (64-bit), v11, 3.12">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Orden</label>
                             <input type="number" name="sort_order" class="form-control" value="0" min="0">
                         </div>
-                        <div class="col-6 mb-3 d-flex align-items-center pt-4">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="aReq">
-                                <label class="form-check-label fw-semibold" for="aReq" style="font-size:13px;">¿Requiere detalle?</label>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Descripción / Uso del Software</label>
+                        <input type="text" name="description" id="aDesc" class="form-control" placeholder="Ej: Modelado BIM y planos técnicos de ingeniería...">
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="aReq" checked>
+                        <label class="form-check-label fw-semibold" for="aReq" style="font-size:13px;">¿Permitir / Sugerir especificar versión en reportes?</label>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -364,19 +384,31 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Versión Sugerida / Defecto</label>
+                            <input type="text" name="default_version" id="eVersion" class="form-control" placeholder="Ej: 2024 (64-bit)">
+                        </div>
+                        <div class="col-6">
                             <label class="form-label fw-semibold" style="font-size:13px;">Orden</label>
                             <input type="number" name="sort_order" id="eSort" class="form-control" min="0">
                         </div>
-                        <div class="col-6 d-flex align-items-center pt-4">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Descripción / Uso del Software</label>
+                        <input type="text" name="description" id="eDesc" class="form-control" placeholder="Ej: Programas técnicos para arquitectura...">
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-12 mb-2">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="requires_detail" value="1" id="eReq">
-                                <label class="form-check-label fw-semibold" for="eReq" style="font-size:13px;">¿Requiere detalle?</label>
+                                <label class="form-check-label fw-semibold" for="eReq" style="font-size:13px;">¿Permitir / Sugerir especificar versión en reportes?</label>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="eActive">
-                        <label class="form-check-label fw-semibold" for="eActive" style="font-size:13px;">Programa Habilitado / Activo</label>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="eActive">
+                                <label class="form-check-label fw-semibold" for="eActive" style="font-size:13px;">Programa Habilitado / Activo</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -516,11 +548,13 @@ function getRow(btn) {
 function openEdit(btn) {
     var row = getRow(btn);
     var id  = row.dataset.progId;
-    document.getElementById('fEdit').action  = BASE + '/' + id;
-    document.getElementById('eName').value   = row.dataset.progName;
-    document.getElementById('eCat').value    = row.dataset.progCat;
-    document.getElementById('eSort').value   = row.dataset.progSort;
-    document.getElementById('eReq').checked  = row.dataset.progReq === '1';
+    document.getElementById('fEdit').action    = BASE + '/' + id;
+    document.getElementById('eName').value     = row.dataset.progName;
+    document.getElementById('eCat').value      = row.dataset.progCat;
+    document.getElementById('eSort').value     = row.dataset.progSort;
+    document.getElementById('eVersion').value  = row.dataset.progVersion || '';
+    document.getElementById('eDesc').value     = row.dataset.progDesc || '';
+    document.getElementById('eReq').checked    = row.dataset.progReq === '1';
     document.getElementById('eActive').checked = row.dataset.progActive === '1';
     showModal('mEdit');
 }
@@ -554,6 +588,8 @@ function submitToggle(row, active) {
     document.getElementById('tgC').value = row.dataset.progCat;
     document.getElementById('tgS').value = row.dataset.progSort;
     document.getElementById('tgR').value = row.dataset.progReq;
+    document.getElementById('tgV').value = row.dataset.progVersion || '';
+    document.getElementById('tgD').value = row.dataset.progDesc || '';
     document.getElementById('tgA').value = active ? '0' : '1';
     f.submit();
 }

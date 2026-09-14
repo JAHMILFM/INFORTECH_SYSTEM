@@ -268,9 +268,14 @@
                 @foreach($softwareCatalog as $category => $programs)
                 <div class="col-md-6">
                     <div class="p-3 h-100" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px;">
-                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color: var(--primary);">
+                        <h6 class="fw-bold mb-1 d-flex align-items-center gap-2" style="color: var(--primary);">
                             <i class="bi bi-collection-fill"></i> {{ $category ?: 'General' }}
                         </h6>
+                        @if($programs->first()->description)
+                            <p class="text-muted fs-11 mb-3" style="line-height: 1.3;">{{ $programs->first()->description }}</p>
+                        @else
+                            <div class="mb-3"></div>
+                        @endif
                         <div class="d-flex flex-column gap-2">
                             @foreach($programs as $prog)
                             <div class="program-item p-2 rounded" style="background: rgba(255,255,255,0.03);">
@@ -278,25 +283,41 @@
                                     <div>
                                         <input class="form-check-input prog-check" type="checkbox" 
                                                name="software[{{ $prog->id }}]" value="1" id="soft_{{ $prog->id }}"
-                                               data-requires-detail="{{ $prog->requires_detail ? '1' : '0' }}"
+                                               data-requires-detail="{{ ($prog->requires_detail || $prog->default_version) ? '1' : '0' }}"
                                                onchange="toggleSoftDetail({{ $prog->id }})"
-                                               {{ in_array($prog->name, ['Microsoft Office', 'Microsoft Teams', 'AnyDesk', 'Google Chrome']) ? 'checked' : '' }}>
+                                               {{ in_array($prog->name, ['Microsoft Office (Paquete Completo)', 'Microsoft Teams', 'AnyDesk', 'Google Chrome', 'Adobe Acrobat / Acrobat Reader', 'WinRAR', 'ESET NOD32']) ? 'checked' : '' }}>
                                         <label class="form-check-label ms-1 fw-semibold fs-13" for="soft_{{ $prog->id }}" style="color: var(--text); cursor: pointer;">
                                             {{ $prog->name }}
                                         </label>
                                     </div>
-                                    @if($prog->requires_detail)
-                                        <span class="badge bg-secondary fs-10">Especificar productos</span>
-                                    @endif
+                                    <div class="d-flex align-items-center gap-1">
+                                        @if($prog->default_version)
+                                            <span class="badge bg-info text-dark fs-10" style="cursor: pointer;" onclick="toggleSoftDetailManual({{ $prog->id }})" title="Versión sugerida / Haz clic para editar">
+                                                <i class="bi bi-bookmark-fill me-1"></i>v. {{ $prog->default_version }}
+                                            </span>
+                                        @elseif($prog->requires_detail)
+                                            <span class="badge bg-secondary fs-10" style="cursor: pointer;" onclick="toggleSoftDetailManual({{ $prog->id }})" title="Especificar versión o edición">
+                                                Especificar versión
+                                            </span>
+                                        @else
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-muted fs-11 text-decoration-none" onclick="toggleSoftDetailManual({{ $prog->id }})" title="Añadir versión">
+                                                <i class="bi bi-plus-circle"></i> Versión
+                                            </button>
+                                        @endif
+                                    </div>
                                 </div>
 
-                                @if($prog->requires_detail)
                                 <div id="detail_wrap_{{ $prog->id }}" class="mt-2 ps-4" style="display: none;">
-                                    <input type="text" name="software_details[{{ $prog->id }}]" class="form-control form-control-sm" 
-                                           placeholder="Detalla los productos (ej. AutoCAD 2024, Revit, Acrobat Pro)"
-                                           style="background: var(--surface); color: var(--text); border-color: var(--border); font-size: 12px;">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text py-0" style="background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 11px; border-color: var(--border);">
+                                            <i class="bi bi-tag me-1"></i> Versión / Detalle:
+                                        </span>
+                                        <input type="text" name="software_details[{{ $prog->id }}]" class="form-control form-control-sm" 
+                                               placeholder="{{ $prog->default_version ? 'Ej. ' . $prog->default_version : 'Ej. 2024 (64-bit), Pro Plus, v11, etc.' }}"
+                                               value="{{ $prog->default_version ?? '' }}"
+                                               style="background: var(--surface); color: var(--text); border-color: var(--border); font-size: 12px;">
+                                    </div>
                                 </div>
-                                @endif
                             </div>
                             @endforeach
                         </div>
@@ -543,12 +564,24 @@
         }
     }
 
-    // 4. Detalle de programas complejos (Autodesk / Adobe)
+    // 4. Detalle y versiones de programas instalados
     function toggleSoftDetail(softId) {
         const check = document.getElementById(`soft_${softId}`);
         const wrap = document.getElementById(`detail_wrap_${softId}`);
         if (wrap) {
             wrap.style.display = check.checked ? 'block' : 'none';
+        }
+    }
+
+    function toggleSoftDetailManual(softId) {
+        const wrap = document.getElementById(`detail_wrap_${softId}`);
+        const check = document.getElementById(`soft_${softId}`);
+        if (wrap) {
+            const isHidden = (wrap.style.display === 'none' || wrap.style.display === '');
+            wrap.style.display = isHidden ? 'block' : 'none';
+            if (check && isHidden) {
+                check.checked = true;
+            }
         }
     }
 
