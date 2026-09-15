@@ -124,6 +124,15 @@ class ReportController extends Controller
             'equipment_model'  => 'nullable|required_if:equipment_option,new|string|max:100',
             'equipment_hostname'=> 'nullable|string|max:100',
             'equipment_os'     => 'nullable|string|max:100',
+            'equipment_processor' => 'nullable|string|max:100',
+            'equipment_ram'       => 'nullable|string|max:50',
+            'equipment_storage'   => 'nullable|string|max:100',
+            // Diagnóstico y Estado:
+            'initial_diagnosis'   => 'nullable|string',
+            'final_state'         => 'nullable|string',
+            // Accesorios:
+            'accessories'         => 'nullable|array',
+            'accessories_notes'   => 'nullable|string|max:255',
             // Datos del reporte:
             'service_date'     => 'required|date',
             'technician_name'  => 'nullable|string|max:150',
@@ -143,8 +152,8 @@ class ReportController extends Controller
             'receiver_role'    => 'nullable|string|max:100',
             'notes'            => 'nullable|string',
             'status'           => 'required|in:draft,confirmed',
-            'delivery_signature_data'  => 'nullable|string',
-            'reception_signature_data' => 'nullable|string',
+            'delivery_signature_data'  => ['nullable', 'string', 'max:800000', 'regex:/^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+\/=\-_]+$/'],
+            'reception_signature_data' => ['nullable', 'string', 'max:800000', 'regex:/^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+\/=\-_]+$/'],
         ]);
 
         return DB::transaction(function () use ($request, $validated) {
@@ -160,12 +169,20 @@ class ReportController extends Controller
                     'model'         => trim($validated['equipment_model']),
                     'hostname'      => $validated['equipment_hostname'] ?? null,
                     'os'            => $validated['equipment_os'] ?? null,
+                    'processor'     => $validated['equipment_processor'] ?? null,
+                    'ram'           => $validated['equipment_ram'] ?? null,
+                    'storage'       => $validated['equipment_storage'] ?? null,
                 ]);
             } else {
                 $equipment = Equipment::findOrFail($validated['equipment_id']);
-                // Actualizar OS o hostname si vinieron nuevos
-                if (!empty($validated['equipment_os'])) {
-                    $equipment->update(['os' => $validated['equipment_os']]);
+                $updData = [];
+                if (!empty($validated['equipment_os'])) $updData['os'] = $validated['equipment_os'];
+                if (!empty($validated['equipment_hostname'])) $updData['hostname'] = $validated['equipment_hostname'];
+                if (!empty($validated['equipment_processor'])) $updData['processor'] = $validated['equipment_processor'];
+                if (!empty($validated['equipment_ram'])) $updData['ram'] = $validated['equipment_ram'];
+                if (!empty($validated['equipment_storage'])) $updData['storage'] = $validated['equipment_storage'];
+                if (!empty($updData)) {
+                    $equipment->update($updData);
                 }
             }
 
@@ -181,8 +198,17 @@ class ReportController extends Controller
                 'client_contact' => $request->input('client_contact', $company->contact_name),
                 'client_phone'   => $request->input('client_phone', $company->contact_phone),
                 'client_email'   => $request->input('client_email', $company->contact_email),
-                // Sección B: Equipo
+                // Sección B: Equipo y Hardware
                 'os_installed'   => $validated['equipment_os'] ?? $equipment->os,
+                'processor'      => $validated['equipment_processor'] ?? $equipment->processor,
+                'ram'            => $validated['equipment_ram'] ?? $equipment->ram,
+                'storage'        => $validated['equipment_storage'] ?? $equipment->storage,
+                // Diagnóstico y Estado
+                'initial_diagnosis' => $validated['initial_diagnosis'] ?? null,
+                'final_state'       => $validated['final_state'] ?? null,
+                // Control de Accesorios
+                'accessories'       => $request->input('accessories', []),
+                'accessories_notes' => $request->input('accessories_notes', null),
                 // Sección C: Usuario y accesos
                 'user_name'      => $validated['user_name'] ?? null,
                 'user_login'     => $validated['user_login'] ?? null,
@@ -261,7 +287,9 @@ class ReportController extends Controller
                     'report_id'      => $report->id,
                     'role'           => 'delivery',
                     'signer_name'    => $technicianName,
-                    'signer_role'    => 'Técnico Especialista Infortech',
+                    'signer_role'    => (auth()->user() && !empty(auth()->user()->job_title))
+                        ? auth()->user()->job_title
+                        : 'Técnico Especialista Infortech',
                     'signature_data' => $validated['delivery_signature_data'],
                     'signed_at'      => now(),
                 ]);
@@ -337,13 +365,31 @@ class ReportController extends Controller
             'signatures',
         ]);
 
-        $content = view('reports.print', compact('report'))->render();
+        $content = view('reports.word', compact('report'))->render();
 
         return response($content, 200, [
             'Content-Type'        => 'application/vnd.ms-word; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="Reporte-' . $report->code . '.doc"',
             'Cache-Control'       => 'max-age=0',
         ]);
+    }
+
+    public function downloadPdf(Report $report)
+    {
+        $report->load([
+            'company',
+            'equipment',
+            'technician',
+            'reportType',
+            'software.catalogItem',
+            'signatures',
+        ]);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf', compact('report'))
+            ->setPaper('a4', 'portrait')
+            ->setOption(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true]);
+
+        return $pdf->download("Reporte-{$report->code}.pdf");
     }
 
     public function confirm(Report $report)
@@ -410,6 +456,9 @@ class ReportController extends Controller
                     'model'         => $item->model,
                     'hostname'      => $item->hostname,
                     'os'            => $item->os,
+                    'processor'     => $item->processor,
+                    'ram'           => $item->ram,
+                    'storage'       => $item->storage,
                 ];
             });
 

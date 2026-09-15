@@ -19,10 +19,12 @@ class UserService
         }
 
         return User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role'     => $data['role'],
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'password'  => Hash::make($data['password']),
+            'role'      => $data['role'],
+            'job_title' => $data['job_title'] ?? null,
+            'phone'     => $data['phone'] ?? null,
         ]);
     }
 
@@ -45,9 +47,11 @@ class UserService
         }
 
         $updateData = [
-            'name'  => $data['name'],
-            'email' => $data['email'],
-            'role'  => $data['role'],
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'role'      => $data['role'],
+            'job_title' => $data['job_title'] ?? $user->job_title,
+            'phone'     => $data['phone'] ?? $user->phone,
         ];
 
         if (isset($data['password']) && $data['password'] !== '') {

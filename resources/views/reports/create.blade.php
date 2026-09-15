@@ -168,6 +168,53 @@
                     <input type="date" name="service_date" class="form-control" required value="{{ old('service_date', date('Y-m-d')) }}" style="background: var(--surface); color: var(--text); border-color: var(--border);">
                 </div>
             </div>
+
+            <!-- Ficha de Hardware Vital -->
+            <div class="row g-3 mt-1">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="color: var(--text);">Procesador (CPU)</label>
+                    <input type="text" name="equipment_processor" id="equipment_processor" class="form-control" value="{{ old('equipment_processor') }}" placeholder="Ej. Intel Core i5-1135G7 @ 2.40GHz" style="background: var(--surface); color: var(--text); border-color: var(--border);">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="color: var(--text);">Memoria RAM</label>
+                    <input type="text" name="equipment_ram" id="equipment_ram" class="form-control" value="{{ old('equipment_ram') }}" placeholder="Ej. 16 GB DDR4 3200MHz" style="background: var(--surface); color: var(--text); border-color: var(--border);">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="color: var(--text);">Almacenamiento (Disco)</label>
+                    <input type="text" name="equipment_storage" id="equipment_storage" class="form-control" value="{{ old('equipment_storage') }}" placeholder="Ej. 512 GB SSD NVMe M.2" style="background: var(--surface); color: var(--text); border-color: var(--border);">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN B.2: DIAGNÓSTICO INICIAL Y ESTADO DE ENTREGA -->
+    <div class="card mb-4" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
+        <div class="card-header py-3 px-4 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid var(--border);">
+            <div class="d-flex align-items-center gap-2">
+                <div class="step-num" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">B.2</div>
+                <h5 class="card-title mb-0" style="color: var(--text);">Diagnóstico Inicial y Estado de Operatividad Final</h5>
+            </div>
+            <span class="badge px-3 py-1" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); border-radius: 6px;">
+                <i class="bi bi-clipboard2-pulse me-1"></i> Control de Calidad
+            </span>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="color: var(--text);">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Motivo del Servicio / Diagnóstico Inicial (Síntoma)
+                    </label>
+                    <textarea name="initial_diagnosis" id="initial_diagnosis" rows="3" class="form-control" placeholder="Ej. Equipo lento, presencia de software no deseado o solicitud de formateo e instalación limpia." style="background: var(--surface); color: var(--text); border-color: var(--border);">{{ old('initial_diagnosis') }}</textarea>
+                    <small class="text-muted">Describe cómo ingresó o qué falla presentaba el equipo.</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="color: var(--text);">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i> Estado Final de Operatividad y Pruebas Realizadas
+                    </label>
+                    <textarea name="final_state" id="final_state" rows="3" class="form-control" placeholder="Ej. Sistema operativo instalado en limpio y activado, controladores actualizados, pruebas de temperatura y operatividad superadas al 100%." style="background: var(--surface); color: var(--text); border-color: var(--border);">{{ old('final_state') }}</textarea>
+                    <small class="text-muted">Detalla el resultado de las pruebas técnicas antes de la entrega.</small>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -221,6 +268,60 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN C.2: CONTROL Y ENTREGA DE ACCESORIOS -->
+    <div class="card mb-4" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
+        <div class="card-header py-3 px-4 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid var(--border);">
+            <div class="d-flex align-items-center gap-2">
+                <div class="step-num" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">C.2</div>
+                <h5 class="card-title mb-0" style="color: var(--text);">Control y Entrega de Accesorios</h5>
+            </div>
+            <span class="badge px-3 py-1" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); border-radius: 6px;">
+                <i class="bi bi-box-seam me-1"></i> Inventario de Entrega
+            </span>
+        </div>
+        <div class="card-body p-4">
+            <p class="text-muted fs-13 mb-3">Marca los accesorios recibidos o entregados junto con el equipo para garantizar la conformidad:</p>
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="form-check p-2 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                        <input class="form-check-input ms-1" type="checkbox" name="accessories[charger]" id="acc_charger" value="1" {{ old('accessories.charger') ? 'checked' : '' }}>
+                        <label class="form-check-label ms-2 fw-semibold fs-13" for="acc_charger" style="color: var(--text);">
+                            <i class="bi bi-plug-fill text-warning me-1"></i> Cargador / Adaptador
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="form-check p-2 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                        <input class="form-check-input ms-1" type="checkbox" name="accessories[power_cable]" id="acc_power" value="1" {{ old('accessories.power_cable') ? 'checked' : '' }}>
+                        <label class="form-check-label ms-2 fw-semibold fs-13" for="acc_power" style="color: var(--text);">
+                            <i class="bi bi-lightning-charge-fill text-primary me-1"></i> Cable de poder
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="form-check p-2 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                        <input class="form-check-input ms-1" type="checkbox" name="accessories[bag]" id="acc_bag" value="1" {{ old('accessories.bag') ? 'checked' : '' }}>
+                        <label class="form-check-label ms-2 fw-semibold fs-13" for="acc_bag" style="color: var(--text);">
+                            <i class="bi bi-backpack text-info me-1"></i> Funda / Mochila
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="form-check p-2 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                        <input class="form-check-input ms-1" type="checkbox" name="accessories[mouse]" id="acc_mouse" value="1" {{ old('accessories.mouse') ? 'checked' : '' }}>
+                        <label class="form-check-label ms-2 fw-semibold fs-13" for="acc_mouse" style="color: var(--text);">
+                            <i class="bi bi-mouse text-secondary me-1"></i> Mouse / Otros
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="form-label text-muted fs-13">Detalles o accesorios adicionales</label>
+                <input type="text" name="accessories_notes" id="accessories_notes" class="form-control" value="{{ old('accessories_notes') }}" placeholder="Ej. Mouse inalámbrico Logitech, docking station USB-C, adaptador HDMI..." style="background: var(--surface); color: var(--text); border-color: var(--border);">
             </div>
         </div>
     </div>
@@ -426,41 +527,152 @@
                 </div>
             </div>
 
-            <!-- LIENZOS DE FIRMA DIGITAL -->
+            <!-- SECCIÓN DE FIRMAS DIGITALES Y CONFORMIDAD -->
             <div class="row g-4 mt-2">
                 <!-- Columna 1: Firma Entrega (INFORTECH) -->
                 <div class="col-md-6">
-                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2" style="border-bottom: 1px solid var(--border);">
                             <span class="fw-bold fs-13" style="color: var(--primary);">
                                 <i class="bi bi-shield-check me-1"></i> ENTREGADO POR (INFORTECH)
                             </span>
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fs-11" onclick="clearDeliveryCanvas()">
-                                <i class="bi bi-eraser me-1"></i> Limpiar
-                            </button>
+                            @if(auth()->user() && auth()->user()->hasSignature())
+                                <span class="badge bg-success-subtle text-success border border-success-subtle fs-11">
+                                    <i class="bi bi-patch-check-fill me-1"></i> Firma Oficial Lista
+                                </span>
+                            @endif
                         </div>
-                        <div style="background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; height: 160px; position: relative;">
-                            <canvas id="delivery_canvas" width="450" height="160" style="width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
+
+                        <!-- Selector de Modo Técnico -->
+                        <ul class="nav nav-pills nav-fill mb-2 gap-1" id="deliveryTabs" role="tablist">
+                            @if(auth()->user() && auth()->user()->hasSignature())
+                            <li class="nav-item">
+                                <button class="nav-link active py-1 px-2 fs-11 fw-semibold" id="deliv-profile-tab" data-bs-toggle="pill" data-bs-target="#deliv-profile-pane" type="button" role="tab" onclick="setDeliveryMode('profile')">
+                                    <i class="bi bi-person-check-fill me-1"></i> Mi Firma Oficial
+                                </button>
+                            </li>
+                            @endif
+                            <li class="nav-item">
+                                <button class="nav-link {{ (!auth()->user() || !auth()->user()->hasSignature()) ? 'active' : '' }} py-1 px-2 fs-11 fw-semibold" id="deliv-draw-tab" data-bs-toggle="pill" data-bs-target="#deliv-draw-pane" type="button" role="tab" onclick="setDeliveryMode('draw')">
+                                    <i class="bi bi-pen me-1"></i> Trazar con Lápiz
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-1 px-2 fs-11 fw-semibold" id="deliv-upload-tab" data-bs-toggle="pill" data-bs-target="#deliv-upload-pane" type="button" role="tab" onclick="setDeliveryMode('upload')">
+                                    <i class="bi bi-cloud-arrow-up me-1"></i> Subir Archivo
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            @if(auth()->user() && auth()->user()->hasSignature())
+                            <!-- Modo 1: Firma de Perfil -->
+                            <div class="tab-pane fade show active" id="deliv-profile-pane" role="tabpanel">
+                                <div class="text-center p-2 rounded" style="background: #ffffff; border: 1px solid #cbd5e1; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(rgba(0,0,0,0.06) 1px, transparent 0); background-size: 8px 8px;">
+                                    <img src="{{ auth()->user()->signature_data }}" alt="Firma de {{ auth()->user()->name }}" style="max-height: 95px; max-width: 90%; object-fit: contain;">
+                                    <div class="mt-1">
+                                        <div class="fw-bold fs-12 text-dark">{{ auth()->user()->name }}</div>
+                                        <small class="text-muted fs-11">{{ auth()->user()->getJobTitleOrDefault() }}</small>
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-2 d-block fs-11 text-center">Firma oficial vinculada automáticamente a tu perfil.</small>
+                            </div>
+                            @endif
+
+                            <!-- Modo 2: Trazar Canvas -->
+                            <div class="tab-pane fade {{ (!auth()->user() || !auth()->user()->hasSignature()) ? 'show active' : '' }}" id="deliv-draw-pane" role="tabpanel">
+                                <div class="d-flex justify-content-end mb-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fs-11" onclick="clearDeliveryCanvas()">
+                                        <i class="bi bi-eraser me-1"></i> Limpiar
+                                    </button>
+                                </div>
+                                <div style="background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; height: 135px; position: relative;">
+                                    <canvas id="delivery_canvas" width="450" height="135" style="width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
+                                </div>
+                                <small class="text-muted mt-2 d-block fs-11 text-center">Firma digital trazada con ratón o pantalla táctil.</small>
+                            </div>
+
+                            <!-- Modo 3: Subir Imagen -->
+                            <div class="tab-pane fade" id="deliv-upload-pane" role="tabpanel">
+                                <div class="p-2 text-center rounded position-relative" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border); cursor: pointer;" onclick="document.getElementById('deliv_file_input').click()">
+                                    <input type="file" id="deliv_file_input" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="d-none" onchange="previewDeliveryUpload(this)">
+                                    <div id="deliv_upload_empty">
+                                        <i class="bi bi-file-earmark-image fs-2 text-primary d-block mb-1"></i>
+                                        <span class="fs-12 fw-semibold d-block" style="color: var(--text);">Clic para seleccionar imagen de firma</span>
+                                        <small class="text-muted fs-11">PNG o JPG (fondo blanco o transparente)</small>
+                                    </div>
+                                    <div id="deliv_upload_preview" class="d-none" style="background: #ffffff; border-radius: 6px; padding: 4px; height: 110px; display: flex; align-items: center; justify-content: center;">
+                                        <img id="deliv_upload_img" src="" alt="Firma subida" style="max-height: 100px; max-width: 90%; object-fit: contain;">
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-2 d-block fs-11 text-center">Sube un archivo de firma en formato de imagen.</small>
+                            </div>
                         </div>
-                        <small class="text-muted mt-2 d-block fs-11">Firma digital del técnico usando ratón o pantalla táctil.</small>
+
+                        @if(!auth()->user() || !auth()->user()->hasSignature())
+                        <div class="mt-2 text-center">
+                            <a href="{{ route('profile.index') }}" target="_blank" class="fs-11 text-decoration-none" style="color: var(--primary-l);">
+                                <i class="bi bi-gear-fill me-1"></i> Guarda tu firma en Mi Perfil para usarla en 1 clic
+                            </a>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
                 <!-- Columna 2: Firma Recepción (CLIENTE) -->
                 <div class="col-md-6">
-                    <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2" style="border-bottom: 1px solid var(--border);">
                             <span class="fw-bold fs-13" style="color: var(--success);">
                                 <i class="bi bi-person-check-fill me-1"></i> RECIBIDO POR (CLIENTE)
                             </span>
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fs-11" onclick="clearReceptionCanvas()">
-                                <i class="bi bi-eraser me-1"></i> Limpiar
-                            </button>
+                            <span class="text-muted fs-11">Conformidad de entrega</span>
                         </div>
-                        <div style="background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; height: 160px; position: relative;">
-                            <canvas id="reception_canvas" width="450" height="160" style="width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
+
+                        <!-- Selector de Modo Cliente -->
+                        <ul class="nav nav-pills nav-fill mb-2 gap-1" id="receptionTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active py-1 px-2 fs-11 fw-semibold" id="rec-draw-tab" data-bs-toggle="pill" data-bs-target="#rec-draw-pane" type="button" role="tab" onclick="setReceptionMode('draw')">
+                                    <i class="bi bi-pen me-1"></i> Trazar en Pantalla
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-1 px-2 fs-11 fw-semibold" id="rec-upload-tab" data-bs-toggle="pill" data-bs-target="#rec-upload-pane" type="button" role="tab" onclick="setReceptionMode('upload')">
+                                    <i class="bi bi-cloud-arrow-up me-1"></i> Subir Firma / Sello
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Modo 1: Trazar Canvas Cliente -->
+                            <div class="tab-pane fade show active" id="rec-draw-pane" role="tabpanel">
+                                <div class="d-flex justify-content-end mb-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fs-11" onclick="clearReceptionCanvas()">
+                                        <i class="bi bi-eraser me-1"></i> Limpiar
+                                    </button>
+                                </div>
+                                <div style="background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; height: 135px; position: relative;">
+                                    <canvas id="reception_canvas" width="450" height="135" style="width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
+                                </div>
+                                <small class="text-muted mt-2 d-block fs-11 text-center">Firma de conformidad del cliente receptor.</small>
+                            </div>
+
+                            <!-- Modo 2: Subir Sello o Firma Cliente -->
+                            <div class="tab-pane fade" id="rec-upload-pane" role="tabpanel">
+                                <div class="p-2 text-center rounded position-relative" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border); cursor: pointer;" onclick="document.getElementById('rec_file_input').click()">
+                                    <input type="file" id="rec_file_input" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="d-none" onchange="previewReceptionUpload(this)">
+                                    <div id="rec_upload_empty">
+                                        <i class="bi bi-patch-check fs-2 text-success d-block mb-1"></i>
+                                        <span class="fs-12 fw-semibold d-block" style="color: var(--text);">Clic para seleccionar sello o firma</span>
+                                        <small class="text-muted fs-11">PNG o JPG escaneado</small>
+                                    </div>
+                                    <div id="rec_upload_preview" class="d-none" style="background: #ffffff; border-radius: 6px; padding: 4px; height: 110px; display: flex; align-items: center; justify-content: center;">
+                                        <img id="rec_upload_img" src="" alt="Firma cliente subida" style="max-height: 100px; max-width: 90%; object-fit: contain;">
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-2 d-block fs-11 text-center">Sube la firma o sello digitalizado del cliente.</small>
+                            </div>
                         </div>
-                        <small class="text-muted mt-2 d-block fs-11">Firma de conformidad del cliente receptor.</small>
                     </div>
                 </div>
             </div>
@@ -512,6 +724,9 @@
                             opt.textContent = `${eq.display_name} - S.O: ${eq.os || 'N/A'}`;
                             opt.setAttribute('data-hostname', eq.hostname || '');
                             opt.setAttribute('data-os', eq.os || '');
+                            opt.setAttribute('data-processor', eq.processor || '');
+                            opt.setAttribute('data-ram', eq.ram || '');
+                            opt.setAttribute('data-storage', eq.storage || '');
                             equipmentSelect.appendChild(opt);
                         });
                     } else {
@@ -527,10 +742,17 @@
 
     equipmentSelect.addEventListener('change', function() {
         const selected = this.options[this.selectedIndex];
+        if (!selected) return;
         const os = selected.getAttribute('data-os');
         const host = selected.getAttribute('data-hostname');
+        const proc = selected.getAttribute('data-processor');
+        const ram = selected.getAttribute('data-ram');
+        const disk = selected.getAttribute('data-storage');
         if (os) document.getElementById('equipment_os').value = os;
         if (host) document.getElementById('eq_hostname').value = host;
+        if (proc) document.getElementById('equipment_processor').value = proc;
+        if (ram) document.getElementById('equipment_ram').value = ram;
+        if (disk) document.getElementById('equipment_storage').value = disk;
     });
 
     // 2. Modo de equipo: Existente vs Nuevo
@@ -684,6 +906,45 @@
 
     let deliveryPad = null;
     let receptionPad = null;
+    let deliveryMode = @json(auth()->user() && auth()->user()->hasSignature() ? 'profile' : 'draw');
+    let receptionMode = 'draw';
+    let savedProfileSignature = @json(auth()->user()->signature_data ?? '');
+    let delivUploadedData = null;
+    let recUploadedData = null;
+
+    function setDeliveryMode(mode) {
+        deliveryMode = mode;
+    }
+
+    function setReceptionMode(mode) {
+        receptionMode = mode;
+    }
+
+    function previewDeliveryUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                delivUploadedData = e.target.result;
+                document.getElementById('deliv_upload_img').src = delivUploadedData;
+                document.getElementById('deliv_upload_preview').classList.remove('d-none');
+                document.getElementById('deliv_upload_empty').classList.add('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewReceptionUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                recUploadedData = e.target.result;
+                document.getElementById('rec_upload_img').src = recUploadedData;
+                document.getElementById('rec_upload_preview').classList.remove('d-none');
+                document.getElementById('rec_upload_empty').classList.add('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         deliveryPad = initCanvas('delivery_canvas');
@@ -706,13 +967,22 @@
     function clearDeliveryCanvas() { if (deliveryPad) deliveryPad.clear(); }
     function clearReceptionCanvas() { if (receptionPad) receptionPad.clear(); }
 
-    // Interceptar submit para serializar firmas
+    // Interceptar submit para serializar firmas según el modo activo
     document.getElementById('reportForm').addEventListener('submit', function(e) {
-        if (deliveryPad && deliveryPad.hasDrawn()) {
+        // Serializar firma de entrega (Técnico Infortech)
+        if (deliveryMode === 'profile' && savedProfileSignature) {
+            document.getElementById('delivery_signature_data').value = savedProfileSignature;
+        } else if (deliveryMode === 'draw' && deliveryPad && deliveryPad.hasDrawn()) {
             document.getElementById('delivery_signature_data').value = deliveryPad.getDataURL();
+        } else if (deliveryMode === 'upload' && delivUploadedData) {
+            document.getElementById('delivery_signature_data').value = delivUploadedData;
         }
-        if (receptionPad && receptionPad.hasDrawn()) {
+
+        // Serializar firma de recepción (Cliente Receptor)
+        if (receptionMode === 'draw' && receptionPad && receptionPad.hasDrawn()) {
             document.getElementById('reception_signature_data').value = receptionPad.getDataURL();
+        } else if (receptionMode === 'upload' && recUploadedData) {
+            document.getElementById('reception_signature_data').value = recUploadedData;
         }
     });
 </script>

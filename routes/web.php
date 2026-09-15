@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Modules\Auth\Controllers\AuthController;
@@ -108,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::get('/reports/{report}/print', [ReportController::class, 'print'])->name('reports.print');
     Route::get('/reports/{report}/download-word', [ReportController::class, 'downloadWord'])->name('reports.downloadWord');
+    Route::get('/reports/{report}/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.downloadPdf');
     Route::post('/reports/{report}/confirm', [ReportController::class, 'confirm'])->name('reports.confirm');
     Route::delete('/reports/{report}', [ReportController::class, 'destroy'])->middleware('role:SuperAdmin')->name('reports.destroy');
     Route::get('/reports/api/equipment/{company}', [ReportController::class, 'getEquipmentByCompany'])->name('reports.api.equipment');
@@ -128,9 +129,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('audit-logs', [\App\Modules\AuditLog\Controllers\AuditLogController::class, 'index'])->name('audit.index');
     });
 
-    // Perfil
+    // Perfil y Firma Digital
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/signature', [ProfileController::class, 'updateSignature'])
+        ->middleware('throttle:15,1')
+        ->name('profile.signature.update');
+    Route::delete('/profile/signature', [ProfileController::class, 'deleteSignature'])
+        ->middleware('throttle:15,1')
+        ->name('profile.signature.destroy');
     Route::put('/profile/password', [ProfileController::class, 'changePassword'])
         ->middleware('throttle:5,1')
         ->name('profile.password');

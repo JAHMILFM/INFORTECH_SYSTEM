@@ -20,6 +20,9 @@ class Equipment extends Model
         'model',
         'hostname',
         'os',
+        'processor',
+        'ram',
+        'storage',
         'notes',
     ];
 

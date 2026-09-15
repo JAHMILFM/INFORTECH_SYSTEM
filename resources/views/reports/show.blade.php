@@ -29,13 +29,17 @@
         </div>
     </div>
     <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex gap-2">
-        <a href="{{ route('reports.print', $report->id) }}" target="_blank" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-            <i class="bi bi-printer-fill"></i>
-            <span>Imprimir / PDF</span>
+        <a href="{{ route('reports.downloadPdf', $report->id) }}" class="btn btn-danger d-flex align-items-center gap-2 shadow-sm" title="Descargar documento PDF oficial">
+            <i class="bi bi-file-earmark-pdf-fill"></i>
+            <span>Descargar PDF</span>
         </a>
-        <a href="{{ route('reports.downloadWord', $report->id) }}" class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm">
+        <a href="{{ route('reports.downloadWord', $report->id) }}" class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm" title="Descargar documento Word editable">
             <i class="bi bi-file-earmark-word-fill"></i>
             <span>Descargar Word (.doc)</span>
+        </a>
+        <a href="{{ route('reports.print', $report->id) }}" target="_blank" class="btn btn-outline-secondary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-printer-fill"></i>
+            <span>Vista Impresión</span>
         </a>
         @if($report->status === 'draft')
             <form action="{{ route('reports.confirm', $report->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmar este reporte como oficial?')">
@@ -61,7 +65,7 @@
 @endif
 
 <div class="row g-4">
-    <!-- Columna Izquierda: Información del Cliente y Equipo -->
+    <!-- Columna Izquierda: Información del Cliente, Equipo, Diagnóstico y Accesorios -->
     <div class="col-lg-6">
         <!-- Tarjeta Cliente -->
         <div class="card mb-4" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
@@ -104,12 +108,12 @@
             </div>
         </div>
 
-        <!-- Tarjeta Equipo -->
+        <!-- Tarjeta Equipo y Hardware -->
         <div class="card mb-4" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
             <div class="card-header py-3 px-4 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid var(--border);">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-primary fs-11">Sección B</span>
-                    <h5 class="card-title mb-0" style="color: var(--text);">Datos del Equipo y Servicio</h5>
+                    <h5 class="card-title mb-0" style="color: var(--text);">Datos del Equipo y Ficha de Hardware</h5>
                 </div>
                 @if($report->equipment)
                     <a href="{{ route('equipment.show', $report->equipment->id) }}" class="fs-12 text-primary text-decoration-none">
@@ -138,18 +142,103 @@
                         <small class="text-muted d-block fs-12">Sistema Operativo</small>
                         <span style="color: var(--text);">{{ $report->data['os_installed'] ?? $report->equipment->os ?? 'Windows' }}</span>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
+                        <small class="text-muted d-block fs-12">Procesador (CPU)</small>
+                        <span class="fw-semibold" style="color: var(--text);">{{ $report->data['processor'] ?? $report->equipment->processor ?? 'No especificado' }}</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <small class="text-muted d-block fs-12">Memoria RAM</small>
+                        <span class="fw-semibold" style="color: var(--text);">{{ $report->data['ram'] ?? $report->equipment->ram ?? 'No especificado' }}</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <small class="text-muted d-block fs-12">Almacenamiento</small>
+                        <span class="fw-semibold" style="color: var(--text);">{{ $report->data['storage'] ?? $report->equipment->storage ?? 'No especificado' }}</span>
+                    </div>
+                    <div class="col-sm-6 pt-2 border-top" style="border-color: var(--border) !important;">
                         <small class="text-muted d-block fs-12">Fecha del Servicio</small>
                         <span class="fw-bold" style="color: var(--primary);">
                             <i class="bi bi-calendar-check me-1"></i>
                             {{ \Carbon\Carbon::parse($report->service_date)->format('d/m/Y') }}
                         </span>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-6 pt-2 border-top" style="border-color: var(--border) !important;">
                         <small class="text-muted d-block fs-12">Técnico Responsable</small>
                         <span style="color: var(--text);">{{ $report->technician_name ?? 'Infortech' }}</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Diagnóstico Inicial y Estado Final -->
+        <div class="card mb-4" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
+            <div class="card-header py-3 px-4 d-flex align-items-center gap-2" style="border-bottom: 1px solid var(--border);">
+                <span class="badge bg-primary fs-11">Sección B.2</span>
+                <h5 class="card-title mb-0" style="color: var(--text);">Diagnóstico Inicial y Estado Final</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <small class="text-danger fw-semibold d-block fs-12 mb-1">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> MOTIVO DEL SERVICIO / DIAGNÓSTICO INICIAL:
+                        </small>
+                        <div class="p-3 rounded fs-13" style="background: rgba(239,68,68,0.05); border-left: 3px solid #ef4444; color: var(--text);">
+                            {{ $report->data['initial_diagnosis'] ?? 'Mantenimiento preventivo/correctivo y formateo limpio de sistema operativo.' }}
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-success fw-semibold d-block fs-12 mb-1">
+                            <i class="bi bi-check-circle-fill me-1"></i> ESTADO FINAL DE ENTREGA Y PRUEBAS REALIZADAS:
+                        </small>
+                        <div class="p-3 rounded fs-13" style="background: rgba(16,185,129,0.05); border-left: 3px solid #10b981; color: var(--text);">
+                            {{ $report->data['final_state'] ?? 'Sistema operativo reinstalado en limpio, controladores optimizados y pruebas de operatividad superadas al 100%.' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Control y Entrega de Accesorios -->
+        @php
+            $acc = $report->data['accessories'] ?? [];
+            $accNotes = $report->data['accessories_notes'] ?? null;
+        @endphp
+        <div class="card mb-4" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
+            <div class="card-header py-3 px-4 d-flex align-items-center gap-2" style="border-bottom: 1px solid var(--border);">
+                <span class="badge bg-primary fs-11">Sección C.2</span>
+                <h5 class="card-title mb-0" style="color: var(--text);">Control y Entrega de Accesorios</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-2 mb-2">
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                            <i class="bi {{ !empty($acc['charger']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle text-muted' }}"></i>
+                            <div class="fs-12 fw-semibold mt-1" style="color: var(--text);">Cargador</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                            <i class="bi {{ !empty($acc['power_cable']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle text-muted' }}"></i>
+                            <div class="fs-12 fw-semibold mt-1" style="color: var(--text);">Cable poder</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                            <i class="bi {{ !empty($acc['bag']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle text-muted' }}"></i>
+                            <div class="fs-12 fw-semibold mt-1" style="color: var(--text);">Funda/Mochila</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded text-center" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                            <i class="bi {{ !empty($acc['mouse']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle text-muted' }}"></i>
+                            <div class="fs-12 fw-semibold mt-1" style="color: var(--text);">Mouse / Otros</div>
+                        </div>
+                    </div>
+                </div>
+                @if($accNotes)
+                    <div class="mt-2 text-muted fs-12">
+                        <strong>Detalle:</strong> {{ $accNotes }}
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -304,7 +393,12 @@
                                 @endif
                             </div>
                             <div class="fw-bold fs-13" style="color: var(--text);">{{ $report->technician_name }}</div>
-                            <small class="text-muted">Técnico Especialista</small>
+                            <small class="text-muted d-block">{{ $report->deliverySignature->signer_role ?? ($report->technician ? $report->technician->job_title : null) ?? 'Técnico Especialista Infortech' }}</small>
+                            @if($report->deliverySignature && $report->deliverySignature->signature_data)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle fs-10 mt-1">
+                                    <i class="bi bi-patch-check-fill me-1"></i> Firma Digital Certificada
+                                </span>
+                            @endif
                         </div>
                     </div>
 

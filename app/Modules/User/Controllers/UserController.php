@@ -27,10 +27,12 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'role'     => ['required', Rule::in(['SuperAdmin', 'Soporte', 'Ventas'])],
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|string|email|max:255|unique:users',
+            'password'  => 'required|string|min:8',
+            'role'      => ['required', Rule::in(['SuperAdmin', 'Soporte', 'Ventas'])],
+            'job_title' => 'nullable|string|max:150',
+            'phone'     => 'nullable|string|max:50',
         ]);
 
         $this->userService->createUser($validated);
@@ -41,10 +43,12 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role'  => ['required', Rule::in(['SuperAdmin', 'Soporte', 'Ventas'])],
-            'password' => 'nullable|string|min:8',
+            'name'      => 'required|string|max:255',
+            'email'     => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'role'      => ['required', Rule::in(['SuperAdmin', 'Soporte', 'Ventas'])],
+            'password'  => 'nullable|string|min:8',
+            'job_title' => 'nullable|string|max:150',
+            'phone'     => 'nullable|string|max:50',
         ]);
 
         try {

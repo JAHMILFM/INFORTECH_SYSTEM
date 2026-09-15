@@ -321,6 +321,9 @@
                     <i class="bi bi-eye"></i> Ocultar Clave
                 </button>
             @endif
+            <a href="{{ route('reports.downloadPdf', $report->id) }}" class="btn-back" style="color: #dc2626; border-color: #fca5a5;" title="Descargar PDF Oficial">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Descargar PDF Oficial
+            </a>
             <a href="{{ route('reports.downloadWord', $report->id) }}" class="btn-back" title="Descargar documento editable">
                 <i class="bi bi-file-earmark-word-fill" style="color: #2563eb;"></i> Descargar Word (.doc)
             </a>
@@ -335,8 +338,8 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="{{ asset('assets/images/logo-blanco.png') }}" alt="Infortech Logo" style="filter: invert(1) brightness(0.2);">
-                    <div style="font-size: 9px; color: #475569; margin-top: 4px; font-weight: 600;">SOLUCIONES TECNOLÓGICAS</div>
+                    <img src="{{ asset('assets/images/logo-blanco.png') }}" alt="Infortech Logo" style="max-height: 48px; max-width: 170px; width: auto; height: auto;">
+                    <div style="font-size: 8.5px; color: #475569; margin-top: 3px; font-weight: 600; letter-spacing: 0.3px;">SOLUCIONES TECNOLÓGICAS & TI</div>
                 </td>
                 <td class="title-cell" rowspan="2">
                     <h1>REPORTE DE SERVICIO TÉCNICO</h1>
@@ -394,10 +397,10 @@
             </div>
         </div>
 
-        <!-- SECCIÓN B: DATOS DEL EQUIPO -->
+        <!-- SECCIÓN B: DATOS DEL EQUIPO Y HARDWARE -->
         <div class="section-box">
             <div class="section-header">
-                <span>Sección B — Datos del Equipo Informático</span>
+                <span>Sección B — Datos del Equipo y Especificaciones de Hardware</span>
             </div>
             <div class="section-body p-0">
                 <table class="data-table">
@@ -405,13 +408,25 @@
                         <th>Tipo de Equipo:</th>
                         <td><strong>{{ strtoupper($report->equipment->type ?? 'Laptop') }}</strong></td>
                         <th>Número de Serie (S/N):</th>
-                        <td><strong style="font-family: monospace; font-size: 12px;">{{ $report->equipment->serial_number ?? 'N/D' }}</strong></td>
+                        <td><strong style="font-family: monospace; font-size: 12px; color: #e56b0c;">{{ $report->equipment->serial_number ?? 'N/D' }}</strong></td>
                     </tr>
                     <tr>
                         <th>Marca y Modelo:</th>
                         <td>{{ $report->equipment->brand ?? 'N/D' }} {{ $report->equipment->model ?? '' }}</td>
                         <th>Sistema Operativo:</th>
                         <td>{{ $report->data['os_installed'] ?? $report->equipment->os ?? 'Windows' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Procesador (CPU):</th>
+                        <td>{{ $report->data['processor'] ?? $report->equipment->processor ?? 'No especificado' }}</td>
+                        <th>Memoria RAM:</th>
+                        <td>{{ $report->data['ram'] ?? $report->equipment->ram ?? 'No especificado' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Almacenamiento:</th>
+                        <td>{{ $report->data['storage'] ?? $report->equipment->storage ?? 'No especificado' }}</td>
+                        <th>Hostname del Equipo:</th>
+                        <td>{{ $report->data['hostname'] ?? $report->equipment->hostname ?? 'No asignado' }}</td>
                     </tr>
                     <tr>
                         <th>Fecha de Ejecución:</th>
@@ -423,10 +438,74 @@
             </div>
         </div>
 
-        <!-- SECCIÓN C: USUARIO Y ACCESOS (CONTRASEÑA VISIBLE) -->
+        <!-- SECCIÓN B.2: DIAGNÓSTICO INICIAL Y ESTADO DE OPERATIVIDAD FINAL -->
         <div class="section-box">
             <div class="section-header">
-                <span>Sección C — Usuario y Accesos al Equipo</span>
+                <span>Sección B.2 — Diagnóstico Inicial y Estado de Operatividad Final</span>
+            </div>
+            <div class="section-body">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 50%; vertical-align: top; padding-right: 8px; border: none;">
+                            <strong style="font-size: 10.5px; color: #b91c1c; display: block; margin-bottom: 4px;">
+                                MOTIVO DEL SERVICIO / DIAGNÓSTICO INICIAL:
+                            </strong>
+                            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; font-size: 11px; min-height: 40px; color: #1e293b;">
+                                {{ $report->data['initial_diagnosis'] ?? 'Mantenimiento preventivo/correctivo y formateo limpio del sistema operativo.' }}
+                            </div>
+                        </td>
+                        <td style="width: 50%; vertical-align: top; padding-left: 8px; border: none;">
+                            <strong style="font-size: 10.5px; color: #047857; display: block; margin-bottom: 4px;">
+                                ESTADO FINAL DE ENTREGA Y PRUEBAS REALIZADAS:
+                            </strong>
+                            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; font-size: 11px; min-height: 40px; color: #1e293b;">
+                                {{ $report->data['final_state'] ?? 'Sistema operativo reinstalado en limpio, controladores optimizados y pruebas de operatividad superadas al 100%.' }}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN C: CONTROL DE ACCESORIOS ENTREGADOS -->
+        @php
+            $acc = $report->data['accessories'] ?? [];
+            $accNotes = $report->data['accessories_notes'] ?? null;
+        @endphp
+        <div class="section-box">
+            <div class="section-header">
+                <span>Sección C — Control y Entrega de Accesorios</span>
+            </div>
+            <div class="section-body p-0">
+                <table class="data-table">
+                    <tr>
+                        <td style="width: 25%;">
+                            <span class="check-box-icon" style="{{ !empty($acc['charger']) ? 'background: #e56b0c; color: #fff;' : '' }}">{{ !empty($acc['charger']) ? '✓' : '' }}</span> Cargador / Adaptador
+                        </td>
+                        <td style="width: 25%;">
+                            <span class="check-box-icon" style="{{ !empty($acc['power_cable']) ? 'background: #e56b0c; color: #fff;' : '' }}">{{ !empty($acc['power_cable']) ? '✓' : '' }}</span> Cable de poder
+                        </td>
+                        <td style="width: 25%;">
+                            <span class="check-box-icon" style="{{ !empty($acc['bag']) ? 'background: #e56b0c; color: #fff;' : '' }}">{{ !empty($acc['bag']) ? '✓' : '' }}</span> Funda / Mochila
+                        </td>
+                        <td style="width: 25%;">
+                            <span class="check-box-icon" style="{{ !empty($acc['mouse']) ? 'background: #e56b0c; color: #fff;' : '' }}">{{ !empty($acc['mouse']) ? '✓' : '' }}</span> Mouse / Otros
+                        </td>
+                    </tr>
+                    @if($accNotes)
+                    <tr>
+                        <th>Detalle de Accesorios:</th>
+                        <td colspan="3">{{ $accNotes }}</td>
+                    </tr>
+                    @endif
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN C.2: USUARIO Y ACCESOS (CONTRASEÑA VISIBLE) -->
+        <div class="section-box">
+            <div class="section-header">
+                <span>Sección C.2 — Usuario y Accesos al Equipo</span>
             </div>
             <div class="section-body p-0">
                 <table class="data-table">
@@ -540,7 +619,7 @@
                             </div>
                             <div class="sign-line"></div>
                             <div class="sign-name">{{ $report->technician_name }}</div>
-                            <div class="sign-role">Técnico Especialista de Sistemas</div>
+                            <div class="sign-role">{{ $report->deliverySignature->signer_role ?? ($report->technician ? $report->technician->job_title : null) ?? 'Técnico Especialista de Sistemas' }}</div>
                         </td>
 
                         <!-- Columna 2: CLIENTE -->

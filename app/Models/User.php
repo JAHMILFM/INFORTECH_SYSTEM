@@ -24,6 +24,12 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'job_title',
+        'phone',
+        'document_id',
+        'signature_data',
+        'signature_updated_at',
+        'avatar',
     ];
 
     /**
@@ -46,7 +52,24 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'signature_updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Determina si el usuario tiene una firma digital registrada.
+     */
+    public function hasSignature(): bool
+    {
+        return !empty($this->signature_data);
+    }
+
+    /**
+     * Obtiene el cargo del usuario o un valor por defecto profesional.
+     */
+    public function getJobTitleOrDefault(): string
+    {
+        return $this->job_title ?: 'Técnico Especialista Infortech';
     }
 
     public function auditLogs()

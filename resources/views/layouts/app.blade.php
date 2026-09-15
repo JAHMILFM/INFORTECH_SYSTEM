@@ -103,7 +103,7 @@
             <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}</div>
             <div>
                 <div class="user-name">{{ auth()->user()->name ?? 'Admin' }}</div>
-                <div class="user-role">{{ auth()->user()->role ?? 'User' }}</div>
+                <div class="user-role">{{ auth()->user()->job_title ?: (auth()->user()->role ?? 'User') }}</div>
             </div>
         </div>
     </div>
@@ -137,7 +137,7 @@
                 <div class="p-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}</div>
                 <div>
                     <div class="p-name">{{ auth()->user()->name ?? 'Admin' }}</div>
-                    <div class="p-role">{{ auth()->user()->role ?? 'User' }}</div>
+                    <div class="p-role">{{ auth()->user()->job_title ?: (auth()->user()->role ?? 'User') }}</div>
                 </div>
                 <i class="bi bi-chevron-down ms-1" style="font-size:10px;color:var(--text-muted);"></i>
             </a>
