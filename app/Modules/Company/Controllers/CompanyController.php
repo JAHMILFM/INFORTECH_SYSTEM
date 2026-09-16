@@ -158,10 +158,19 @@ class CompanyController extends Controller
         }
 
         $password = $adminRecord->data['password'];
-        try {
-            $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            // Si falla, asumimos que estaba en texto plano temporalmente
+        while (is_string($password)) {
+            try {
+                $dec = \Illuminate\Support\Facades\Crypt::decryptString($password);
+                $password = $dec;
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                break;
+            } catch (\Exception $e) {
+                break;
+            }
+        }
+
+        if (is_string($password) && (str_starts_with($password, 'ey') || str_starts_with($password, '{"iv"'))) {
+            return response()->json(['error' => 'Contraseña no disponible con la clave actual.'], 422);
         }
 
         // Registrar en logs de auditoría la visualización de la contraseña
@@ -248,10 +257,19 @@ class CompanyController extends Controller
         }
 
         $password = $adminRecord->data['password'];
-        try {
-            $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            // Si falla, asumimos que estaba en texto plano temporalmente
+        while (is_string($password)) {
+            try {
+                $dec = \Illuminate\Support\Facades\Crypt::decryptString($password);
+                $password = $dec;
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                break;
+            } catch (\Exception $e) {
+                break;
+            }
+        }
+
+        if (is_string($password) && (str_starts_with($password, 'ey') || str_starts_with($password, '{"iv"'))) {
+            return response()->json(['error' => 'Contraseña no disponible con la clave actual.'], 422);
         }
 
         // Registrar en logs de auditoría la visualización de la contraseña

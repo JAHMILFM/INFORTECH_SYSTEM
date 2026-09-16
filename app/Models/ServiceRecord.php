@@ -23,14 +23,25 @@ class ServiceRecord extends Model
             set: function ($value) {
                 $data = is_string($value) ? json_decode($value, true) : $value;
                 
-                // Poka-Yoke de Seguridad: Garantizar que CUALQUIER contraseña se encripte al guardar
+                // Poka-Yoke de Seguridad: Garantizar que CUALQUIER contraseña tenga exactamente UNA capa de cifrado
                 if (is_array($data)) {
                     foreach ($data as $key => $val) {
-                        if (preg_match('/pass(word)?|key/i', $key) && !empty($val)) {
-                            try {
-                                \Illuminate\Support\Facades\Crypt::decryptString($val);
-                            } catch (\Exception $e) {
-                                $data[$key] = \Illuminate\Support\Facades\Crypt::encryptString($val);
+                        if (preg_match('/pass(word)?|key/i', $key) && !empty($val) && is_string($val)) {
+                            // Desenvolver todas las capas existentes hasta llegar al texto plano
+                            $plain = $val;
+                            while (is_string($plain)) {
+                                try {
+                                    $dec = \Illuminate\Support\Facades\Crypt::decryptString($plain);
+                                    $plain = $dec;
+                                } catch (\Exception $e) {
+                                    break;
+                                }
+                            }
+                            // Si tras desenrollar sigue siendo un payload JSON huérfano con MAC inválido, mantener tal cual
+                            if (is_string($plain) && (str_starts_with($plain, 'ey') || str_starts_with($plain, '{"iv"'))) {
+                                $data[$key] = $val;
+                            } else {
+                                $data[$key] = \Illuminate\Support\Facades\Crypt::encryptString($plain);
                             }
                         }
                     }
